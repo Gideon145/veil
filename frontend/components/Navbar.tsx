@@ -15,21 +15,21 @@ export function Navbar() {
   const isWrongNetwork = isConnected && chainId !== arbitrumSepolia.id;
 
   return (
-    <nav className="border-b border-violet-900/30 bg-[#03040a]/90 backdrop-blur-md sticky top-0 z-50">
+    <nav className="border-b border-blue-900/30 bg-[#03040a]/90 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2.5 group">
             {/* Logo mark — alien eye */}
             <div className="relative w-8 h-8">
-              <div className="absolute inset-0 bg-violet-600 rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-blue-600 rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500" />
               <div className="absolute inset-1.5 bg-[#03040a] rounded-sm rotate-45" />
-              <div className="absolute inset-[7px] bg-violet-400 rounded-sm rotate-45" />
+              <div className="absolute inset-[7px] bg-blue-400 rounded-sm rotate-45" />
             </div>
             <span className="font-bold text-lg tracking-widest uppercase text-white">VEIL</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-gray-500">
-            <Link href="/" className="hover:text-violet-300 transition-colors tracking-wide">Dashboard</Link>
-            <Link href="/create" className="hover:text-violet-300 transition-colors tracking-wide">New Hedge</Link>
+            <Link href="/" className="hover:text-blue-300 transition-colors tracking-wide">Dashboard</Link>
+            <Link href="/create" className="hover:text-blue-300 transition-colors tracking-wide">New Hedge</Link>
           </div>
         </div>
 
@@ -45,7 +45,7 @@ export function Navbar() {
 
           {isConnected ? (
             <div className="flex items-center gap-2">
-              <div className="px-3 py-1.5 bg-violet-900/20 border border-violet-800/40 rounded-lg text-sm font-mono text-violet-300">
+              <div className="px-3 py-1.5 bg-blue-900/20 border border-blue-800/40 rounded-lg text-sm font-mono text-blue-300">
                 {shortenAddress(address!)}
               </div>
               <button
@@ -58,7 +58,7 @@ export function Navbar() {
           ) : (
             <button
               onClick={() => connect({ connector: injected() })}
-              className="relative overflow-hidden bg-violet-600 hover:bg-violet-500 text-white text-sm px-5 py-2 rounded-lg transition-colors font-medium tracking-wide"
+              className="relative overflow-hidden bg-blue-600 hover:bg-blue-500 text-white text-sm px-5 py-2 rounded-lg transition-colors font-medium tracking-wide"
             >
               Connect Wallet
             </button>

@@ -124,8 +124,8 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
           <div className="max-w-2xl">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 text-xs font-mono text-violet-400 bg-violet-900/20 border border-violet-800/40 rounded-full px-3 py-1.5 mb-6">
-              <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 text-xs font-mono text-blue-400 bg-blue-900/20 border border-blue-800/40 rounded-full px-3 py-1.5 mb-6">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
               iExec Nox TEE · Arbitrum Sepolia · Chainlink Oracle
             </div>
 
@@ -146,7 +146,7 @@ export default function Home() {
           <div className="flex-shrink-0 flex flex-col gap-3 items-start md:items-end">
             <Link
               href="/create"
-              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-7 py-3.5 rounded-xl transition-all hover:scale-105 shadow-lg shadow-violet-900/30"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-7 py-3.5 rounded-xl transition-all hover:scale-105 shadow-lg shadow-blue-900/30"
             >
               <span className="text-lg">+</span>
               <span>Start a Hedge</span>
@@ -155,25 +155,33 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Stats row */}
+        {/* Stats row — only show when connected */}
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="relative overflow-hidden veil-scanline bg-[#0a0812] border border-violet-900/40 rounded-2xl p-5">
+          <div className="relative overflow-hidden veil-scanline bg-[#040810] border border-blue-900/40 rounded-2xl p-5">
             <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Live ETH/USD</div>
             <PriceFeed compact />
             <div className="text-xs text-gray-700 mt-1 font-mono">chainlink · 15s refresh</div>
           </div>
-          <div className="bg-[#0a0812] border border-gray-800/60 rounded-2xl p-5">
+          <div className="bg-[#040810] border border-gray-800/60 rounded-2xl p-5">
             <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Active Hedges</div>
-            <div className="text-3xl font-black text-green-400 tabular-nums">
-              {loading ? <span className="animate-pulse text-gray-700">—</span> : activeCount}
-            </div>
+            {address ? (
+              <div className="text-3xl font-black text-green-400 tabular-nums">
+                {loading ? <span className="animate-pulse text-gray-700">—</span> : activeCount}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-700 mt-1">Connect wallet to view</div>
+            )}
             <div className="text-xs text-gray-700 mt-1">contracts on Arbitrum</div>
           </div>
-          <div className="bg-[#0a0812] border border-violet-900/40 rounded-2xl p-5">
+          <div className="bg-[#040810] border border-blue-900/40 rounded-2xl p-5">
             <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Encrypted Positions</div>
-            <div className="text-3xl font-black text-violet-400 tabular-nums">
-              {loading ? <span className="animate-pulse text-gray-700">—</span> : encryptedCount}
-            </div>
+            {address ? (
+              <div className="text-3xl font-black text-blue-400 tabular-nums">
+                {loading ? <span className="animate-pulse text-gray-700">—</span> : encryptedCount}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-700 mt-1">Connect wallet to view</div>
+            )}
             <div className="text-xs text-gray-700 mt-1">position sizes hidden · iExec Nox</div>
           </div>
         </div>
@@ -181,38 +189,41 @@ export default function Home() {
 
       {/* ── HOW IT WORKS ── */}
       <section className="px-6 pb-16 max-w-6xl mx-auto">
-        <div className="border border-gray-800/50 rounded-2xl p-8 bg-[#060608]">
-          <div className="text-xs text-gray-600 uppercase tracking-widest mb-6 font-mono">what is this?</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                step: "01",
-                title: "You set a safety price",
-                body: "Pick the ETH price that would hurt you. If ETH drops below it, you're protected. This is your trigger.",
-              },
-              {
-                step: "02",
-                title: "Your bet size stays secret",
-                body: "The amount you're hedging is encrypted on your device before it ever hits the blockchain. Nobody else can see it.",
-              },
-              {
-                step: "03",
-                title: "A robot watches the price",
-                body: "Chainlink's oracle checks ETH/USD 24/7. No humans, no counterparty needed to decide if a crash happened.",
-              },
-              {
-                step: "04",
-                title: "Auto payout if it crashes",
-                body: "ETH drops below your trigger? The contract pays you instantly. No forms. No waiting. No negotiation.",
-              },
-            ].map(({ step, title, body }) => (
-              <div key={step} className="relative group">
-                <div className="text-4xl font-black text-violet-900/40 mb-3 font-mono group-hover:text-violet-700/40 transition-colors">{step}</div>
-                <h3 className="font-semibold text-white mb-2 text-sm">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
-              </div>
-            ))}
-          </div>
+        <div className="mb-4">
+          <div className="text-xs text-gray-600 uppercase tracking-widest font-mono">what is this?</div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              step: "01",
+              title: "You set a safety price",
+              body: "Pick the ETH price that would hurt you. If ETH drops below it, you're protected. This is your trigger.",
+            },
+            {
+              step: "02",
+              title: "Your bet size stays secret",
+              body: "The amount you're hedging is encrypted on your device before it ever hits the blockchain. Nobody else can see it.",
+            },
+            {
+              step: "03",
+              title: "A robot watches the price",
+              body: "Chainlink's oracle checks ETH/USD 24/7. No humans, no counterparty needed to decide if a crash happened.",
+            },
+            {
+              step: "04",
+              title: "Auto payout if it crashes",
+              body: "ETH drops below your trigger? The contract pays you instantly. No forms. No waiting. No negotiation.",
+            },
+          ].map(({ step, title, body }) => (
+            <div
+              key={step}
+              className="bg-[#04080f] border border-blue-900/40 rounded-2xl p-6 hover:border-blue-700/60 transition-colors group"
+            >
+              <div className="text-4xl font-black text-blue-900/50 mb-4 font-mono group-hover:text-blue-700/50 transition-colors">{step}</div>
+              <h3 className="font-semibold text-white mb-2 text-sm">{title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -230,7 +241,7 @@ export default function Home() {
           ) : myContracts.length === 0 ? (
             <div className="border border-dashed border-gray-800 rounded-2xl p-10 text-center text-gray-600">
               No hedges yet.{" "}
-              <Link href="/create" className="text-violet-400 hover:underline">
+              <Link href="/create" className="text-blue-400 hover:underline">
                 Start your first one →
               </Link>
             </div>
@@ -244,7 +255,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── ALL CONTRACTS ── */}
+      {/* ── ALL CONTRACTS ── only visible when wallet connected ── */}
+      {address && (
       <section className="px-6 pb-24 max-w-6xl mx-auto">
         <div className="flex items-center gap-3 mb-5">
           <h2 className="text-sm font-mono text-gray-500 uppercase tracking-widest">All Contracts</h2>
@@ -257,8 +269,8 @@ export default function Home() {
         ) : contracts.length === 0 ? (
           <div className="border border-dashed border-gray-800 rounded-2xl p-14 text-center">
             <div className="w-16 h-16 mx-auto mb-4 relative">
-              <div className="absolute inset-0 bg-violet-900/20 rounded-full animate-ping" />
-              <div className="relative flex items-center justify-center w-16 h-16 bg-violet-900/30 rounded-full border border-violet-800/50">
+              <div className="absolute inset-0 bg-blue-900/20 rounded-full animate-ping" />
+              <div className="relative flex items-center justify-center w-16 h-16 bg-blue-900/30 rounded-full border border-blue-800/50">
                 <span className="text-2xl">🔒</span>
               </div>
             </div>
@@ -266,7 +278,7 @@ export default function Home() {
             <p className="text-gray-700 text-sm mb-5">Be the first to encrypt a position.</p>
             <Link
               href="/create"
-              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
             >
               Start a Hedge
             </Link>
@@ -279,6 +291,7 @@ export default function Home() {
           </div>
         )}
       </section>
+      )}
 
     </div>
   );

@@ -1,10 +1,10 @@
-# Hackathon Feedback — cCDS (Confidential Credit Default Swaps)
+# Hackathon Feedback — VEIL Protocol (Confidential On-Chain Hedging)
 
 ## Project Summary
 
-**cCDS** is the world's first on-chain credit default swap with fully encrypted notionals, built on iExec Nox on Arbitrum Sepolia.
+**VEIL** is the world's first on-chain confidential hedge protocol, built on iExec Nox on Arbitrum Sepolia.
 
-Counterparties can hedge credit exposure (e.g. ETH price dropping below a trigger) without revealing the size of the position to anyone on-chain. The notional amount is encrypted client-side via iExec Nox before any transaction is submitted. Settlement is trustless, powered by Chainlink ETH/USD oracle.
+Anyone can set a price floor for ETH. If the market crashes below it, they get paid automatically. The critical difference: the position size (notional amount) is fully encrypted on-chain using iExec Nox TEE — nobody on the blockchain can see how much they hedged.
 
 ---
 
@@ -12,7 +12,7 @@ Counterparties can hedge credit exposure (e.g. ETH price dropping below a trigge
 
 Before Nox, confidential on-chain finance was impossible — you could either have privacy (centralised, off-chain) or trustless execution (on-chain, fully public). Nox bridges this gap.
 
-**Specific use of Nox in cCDS:**
+**Specific use of Nox in VEIL:**
 
 1. **`Nox.fromExternal(externalEuint256)`** — accepts a client-side encrypted euint256 (the notional) and converts it into an on-chain encrypted handle.
 2. **`Nox.toEuint256(handle)`** — unwraps the stored handle for arithmetic inside the contract.

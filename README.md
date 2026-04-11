@@ -194,7 +194,7 @@ Auditor access is granted via `grantAuditorAccess(cdsId, auditorAddress)` by the
 
 ## Built For
 
-**iExec Vibe Coding Challenge 2026** — [DoraHacks submission](https://dorahacks.io)
+**iExec Vibe Coding Challenge 2026** — [DoraHacks submission](https://dorahacks.io/hackathon/vibe-coding-iexec/buidl)
 
 Category: DeFi × Confidential Computing
 

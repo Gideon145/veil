@@ -6,9 +6,9 @@ export default function Footer() {
         {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="relative w-5 h-5">
-            <div className="absolute inset-0 border border-violet-600 rotate-45 rounded-sm" />
-            <div className="absolute inset-1 border border-violet-400 rotate-45 rounded-sm" />
-            <div className="absolute inset-2 bg-violet-400 rotate-45 rounded-sm" />
+            <div className="absolute inset-0 border border-blue-600 rotate-45 rounded-sm" />
+            <div className="absolute inset-1 border border-blue-400 rotate-45 rounded-sm" />
+            <div className="absolute inset-2 bg-blue-400 rotate-45 rounded-sm" />
           </div>
           <span className="text-xs font-mono tracking-widest text-gray-600 uppercase">
             VEIL Protocol
@@ -18,7 +18,7 @@ export default function Footer() {
         {/* Copyright */}
         <p className="text-xs text-gray-700 font-mono text-center">
           © {year} VEIL Protocol. All rights reserved.{" "}
-          <span className="text-violet-900">™</span>
+          <span className="text-blue-900">™</span>
           <br className="sm:hidden" />
           <span className="hidden sm:inline"> · </span>
           Built for the{" "}
@@ -26,7 +26,7 @@ export default function Footer() {
             href="https://iex.ec"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-violet-800 hover:text-violet-600 transition-colors"
+            className="text-blue-800 hover:text-blue-600 transition-colors"
           >
             iExec
           </a>{" "}
@@ -39,7 +39,7 @@ export default function Footer() {
             href="https://iex.ec"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-violet-500 transition-colors"
+            className="hover:text-blue-500 transition-colors"
           >
             iExec Nox
           </a>
@@ -48,7 +48,7 @@ export default function Footer() {
             href="https://arbiscan.io"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-violet-500 transition-colors"
+            className="hover:text-blue-500 transition-colors"
           >
             Arbitrum
           </a>
@@ -57,7 +57,7 @@ export default function Footer() {
             href="https://chain.link"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-violet-500 transition-colors"
+            className="hover:text-blue-500 transition-colors"
           >
             Chainlink
           </a>
