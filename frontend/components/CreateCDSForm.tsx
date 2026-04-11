@@ -106,20 +106,63 @@ export function CreateCDSForm() {
 
   if (isSuccess) {
     return (
-      <div className="bg-gray-900 border border-green-800 rounded-xl p-8 text-center">
-        <div className="text-5xl mb-4">🔐</div>
-        <h2 className="text-xl font-bold text-green-400 mb-2">CDS Created Successfully</h2>
-        <p className="text-gray-400 text-sm mb-4">
-          Your notional amount is encrypted and stored on-chain. Only you and your counterparty can decrypt it.
-        </p>
-        <a
-          href={`https://sepolia.arbiscan.io/tx/${txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-violet-400 hover:underline"
-        >
-          View on Arbiscan →
-        </a>
+      <div className="bg-[#04080f] border border-green-700/50 rounded-2xl p-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-green-900/40 border border-green-700/60 flex items-center justify-center text-lg">✅</div>
+          <div>
+            <h2 className="text-lg font-bold text-green-400">Hedge Opened</h2>
+            <p className="text-xs text-gray-500">Your position is live on Arbitrum Sepolia</p>
+          </div>
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-3">
+            <div className="text-xs text-gray-500 mb-1">Floor Price</div>
+            <div className="text-lg font-bold font-mono text-red-400">${parseFloat(form.triggerPriceUSD).toLocaleString()}</div>
+            <div className="text-xs text-gray-600 mt-0.5">Triggers payout below this</div>
+          </div>
+          <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-3">
+            <div className="text-xs text-gray-500 mb-1">Notional Size</div>
+            <div className="text-lg font-bold font-mono text-blue-400">*** ENCRYPTED</div>
+            <div className="text-xs text-gray-600 mt-0.5">Hidden via iExec Nox TEE</div>
+          </div>
+          <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-3">
+            <div className="text-xs text-gray-500 mb-1">Duration</div>
+            <div className="text-lg font-bold">{form.durationDays} days</div>
+            <div className="text-xs text-gray-600 mt-0.5">Time to maturity</div>
+          </div>
+          <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-3">
+            <div className="text-xs text-gray-500 mb-1">Nox Handle</div>
+            <div className="text-xs font-mono text-blue-300 truncate">{encryptedData?.handle.slice(0, 18)}…</div>
+            <div className="text-xs text-gray-600 mt-0.5">On-chain ciphertext ref</div>
+          </div>
+        </div>
+
+        {/* Privacy note */}
+        <div className="bg-blue-900/20 border border-blue-800/40 rounded-xl px-4 py-3 mb-5 text-xs text-blue-300 flex items-start gap-2">
+          <span className="mt-0.5">🔒</span>
+          <span>Your position size is encrypted on-chain. Nobody — not even node operators — can read it. Etherscan only sees the 32-byte Nox handle above.</span>
+        </div>
+
+        {/* Links */}
+        <div className="flex gap-3">
+          <a
+            href={`https://sepolia.arbiscan.io/tx/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 text-center text-xs text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg py-2.5 transition-colors"
+          >
+            View on Arbiscan →
+          </a>
+          <a
+            href="/"
+            className="flex-1 text-center text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg py-2.5 transition-colors font-medium"
+          >
+            Back to Dashboard →
+          </a>
+        </div>
       </div>
     );
   }
