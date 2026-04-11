@@ -227,6 +227,62 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── CONNECT PROMPT — shown only when wallet not connected ── */}
+      {!address && (
+        <section className="px-6 pb-24 max-w-6xl mx-auto">
+          <div className="relative overflow-hidden rounded-2xl border border-blue-900/30 bg-[#04080f] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            {/* Decorative glow */}
+            <div className="absolute right-0 top-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
+            <div>
+              <div className="text-xs font-mono text-blue-500 uppercase tracking-widest mb-3">ready to hedge?</div>
+              <h2 className="text-2xl font-black text-white mb-2">Connect your wallet to get started.</h2>
+              <p className="text-gray-500 text-sm max-w-md">
+                See all live contracts, open your own hedge position, and watch the Chainlink oracle settle in real time.
+                Your position size stays encrypted — always.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-4 text-xs text-gray-600 font-mono">
+                <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500" />Arbitrum Sepolia</span>
+                <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />iExec Nox TEE</span>
+                <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />Chainlink Oracle</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-3 flex-shrink-0">
+              <div className="w-20 h-20 relative">
+                <div className="absolute inset-0 bg-blue-600 rounded-2xl rotate-45 opacity-20 animate-pulse" />
+                <div className="absolute inset-3 bg-blue-500 rounded-xl rotate-45 opacity-30" />
+                <div className="absolute inset-6 bg-blue-400 rounded-lg rotate-45" />
+              </div>
+              <p className="text-xs text-gray-700 font-mono text-center">Use the Connect Wallet<br />button at the top right</p>
+            </div>
+          </div>
+
+          {/* Built by strip */}
+          <div className="mt-6 flex items-center justify-center gap-3 text-xs text-gray-700 font-mono">
+            <span>Built by</span>
+            <a
+              href="https://github.com/Gideon145"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-blue-800 hover:text-blue-500 transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              Gideon145
+            </a>
+            <span>·</span>
+            <a
+              href="https://github.com/Gideon145/veil"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-500 transition-colors"
+            >
+              github.com/Gideon145/veil
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* ── MY POSITIONS ── */}
       {address && (
         <section className="px-6 pb-10 max-w-6xl mx-auto">

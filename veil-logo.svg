@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <rect width="480" height="480" fill="#03040a"/>
+  <!-- Grid lines -->
+  <line x1="0" y1="240" x2="480" y2="240" stroke="rgba(59,130,246,0.15)" stroke-width="1"/>
+  <line x1="240" y1="0" x2="240" y2="480" stroke="rgba(59,130,246,0.15)" stroke-width="1"/>
+  <!-- Outer diamond -->
+  <rect x="140" y="140" width="200" height="200" rx="12" fill="none" stroke="#2563eb" stroke-width="3" transform="rotate(45 240 240)"/>
+  <!-- Middle diamond -->
+  <rect x="165" y="165" width="150" height="150" rx="8" fill="none" stroke="#3b82f6" stroke-width="2" transform="rotate(45 240 240)"/>
+  <!-- Inner filled diamond -->
+  <rect x="200" y="200" width="80" height="80" rx="4" fill="#60a5fa" transform="rotate(45 240 240)"/>
+  <!-- VEIL text -->
+  <text x="240" y="390" font-family="Arial, sans-serif" font-size="52" font-weight="900" letter-spacing="18" fill="#ffffff" text-anchor="middle">VEIL</text>
+  <!-- Tagline -->
+  <text x="240" y="420" font-family="Arial, sans-serif" font-size="14" letter-spacing="3" fill="#3b82f6" text-anchor="middle">PROTOCOL</text>
+</svg>
