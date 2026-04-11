@@ -217,11 +217,11 @@ export default function Home() {
           ].map(({ step, title, body }) => (
             <div
               key={step}
-              className="bg-[#04080f] border border-blue-900/40 rounded-2xl p-6 hover:border-blue-700/60 transition-colors group"
+              className="bg-[#04080f] border border-blue-900/40 rounded-2xl p-6 transition-all duration-300 group cursor-default hover:border-blue-500/70 hover:bg-[#060d1a] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:-translate-y-1"
             >
-              <div className="text-4xl font-black text-blue-900/50 mb-4 font-mono group-hover:text-blue-700/50 transition-colors">{step}</div>
-              <h3 className="font-semibold text-white mb-2 text-sm">{title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
+              <div className="text-4xl font-black text-blue-900/50 mb-4 font-mono group-hover:text-blue-400/80 transition-colors duration-300">{step}</div>
+              <h3 className="font-semibold text-white mb-2 text-sm group-hover:text-blue-100 transition-colors duration-300">{title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">{body}</p>
             </div>
           ))}
         </div>
