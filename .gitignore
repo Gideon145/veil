@@ -1,0 +1,24 @@
+# Environment — contains private keys, NEVER commit
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules
+frontend/node_modules
+
+# Hardhat build outputs
+artifacts
+cache
+typechain-types
+
+# Hardhat deployments with private wallet state
+deployments/*/
+
+# Frontend build
+frontend/.next
+dist
+
+# OS
+.DS_Store
+Thumbs.db
