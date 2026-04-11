@@ -27,7 +27,7 @@ interface AggregatorV3Interface {
 
 /**
  * @title ConfidentialCDS
- * @notice World's first confidential Credit Default Swap on-chain.
+ * @notice Confidential Credit Default Swap on-chain with encrypted notionals via iExec Nox.
  *
  * A CDS is an insurance contract: the buyer pays periodic premiums to the seller.
  * If the reference asset price drops below the trigger price (credit event),

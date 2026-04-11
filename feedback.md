@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-**VEIL** is the world's first on-chain confidential hedge protocol, built on iExec Nox on Arbitrum Sepolia.
+**VEIL** is an on-chain confidential hedge protocol built on iExec Nox on Arbitrum Sepolia.
 
 Anyone can set a price floor for ETH. If the market crashes below it, they get paid automatically. The critical difference: the position size (notional amount) is fully encrypted on-chain using iExec Nox TEE — nobody on the blockchain can see how much they hedged.
 

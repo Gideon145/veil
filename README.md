@@ -2,7 +2,7 @@
 
 > **Hedge privately. Settle trustlessly.**
 
-**VEIL** is the world's first on-chain credit default swap where your position size is **fully encrypted**. Set a price floor for your ETH. If the market crashes below it, you get paid automatically — and nobody on the blockchain ever sees how much you hedged.
+**VEIL** is an on-chain confidential hedge protocol where your position size is **fully encrypted**. Set a price floor for your ETH. If the market crashes below it, you get paid automatically — and nobody on the blockchain ever sees how much you hedged.
 
 ---
 
