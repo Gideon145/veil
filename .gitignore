@@ -6,19 +6,30 @@
 # Dependencies
 node_modules
 frontend/node_modules
+veil/node_modules
+veil/frontend/node_modules
 
 # Hardhat build outputs
 artifacts
 cache
 typechain-types
+veil/artifacts
+veil/cache
+veil/typechain-types
 
 # Hardhat deployments with private wallet state
 deployments/*/
+veil/deployments/*/
 
 # Frontend build
 frontend/.next
 dist
+veil/frontend/.next
+
+# Parry Protocol — has its own git repo, tracked separately
+parry/
 
 # OS
 .DS_Store
 Thumbs.db
+.vercel
