@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/Arbitrum_Sepolia-421614-28A0F0?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Audited-ChainGPT_AI-00c853?style=for-the-badge" />
 </p>
 
 <p align="center">
@@ -563,6 +564,27 @@ veil/
 - [x] Deployment scripts + seed scripts for reproducibility
 - [x] Repository public and documented
 - [x] DoraHacks submission filed
+- [x] Smart contract audited by ChainGPT AI Auditor — no critical vulnerabilities found
+
+---
+
+## Security Audit
+
+`ConfidentialCDS.sol` was audited by the **[ChainGPT AI Smart Contract Auditor](https://app.chaingpt.org/smart-contract-auditor)** on April 14, 2026.
+
+**Verdict: No critical vulnerabilities found.**
+
+| Finding | Severity | Status |
+|---|---|---|
+| Reentrancy — state changes before external calls | ✅ Already correct | No action needed |
+| Access control on `grantAuditorAccess` | Low | Duplicate grant is idempotent — no harm |
+| Oracle stale data protection (2h freshness check) | ✅ Already implemented | No action needed |
+| `block.timestamp` dependence | Informational | Acceptable for maturity windows |
+| Solidity 0.8.x overflow protection | ✅ Built-in | No action needed |
+| Custom errors for gas efficiency | ✅ Implemented | No action needed |
+| Oracle failure DoS on `checkAndSettle` | Low | By design — stale data reverts safely |
+
+The audit confirms the core security patterns — `ReentrancyGuard`, `SafeERC20`, custom errors, and oracle freshness checks — are correctly implemented. The contract follows Checks-Effects-Interactions throughout.
 
 ---
 
