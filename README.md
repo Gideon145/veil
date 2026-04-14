@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/iExec_Nox-TEE-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Chainlink-Oracle-375BD2?style=for-the-badge&logo=chainlink" />
   <img src="https://img.shields.io/badge/Arbitrum_Sepolia-421614-28A0F0?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
 </p>
 
@@ -337,7 +337,7 @@ Standard ERC-20 test token used as the collateral and premium currency for Arbit
 | **Security** | OpenZeppelin `ReentrancyGuard`, `SafeERC20` | Reentrancy protection, safe token transfers |
 | **Price Oracle** | Chainlink ETH/USD | Trustless settlement trigger — no human arbiter |
 | **Network** | Arbitrum Sepolia (`chainId 421614`) | L2 for low-cost, fast finality |
-| **Frontend** | Next.js 14 + Tailwind CSS | React server components + app router |
+| **Frontend** | Next.js 16 + Tailwind CSS | React server components + app router |
 | **Blockchain Hooks** | wagmi `v2` + viem `v2` | Type-safe contract reads/writes |
 | **Wallet Connection** | RainbowKit | Multi-wallet connect modal |
 | **Deployment** | Vercel | Zero-config frontend CI/CD |
@@ -556,7 +556,7 @@ veil/
 - [x] Stale oracle protection (2-hour freshness check in `checkAndSettle`)
 - [x] Reentrancy guards on all state-changing functions
 - [x] Custom Solidity errors (gas-efficient vs string reverts)
-- [x] Full Next.js 14 frontend with wallet integration
+- [x] Full Next.js 16 frontend with wallet integration
 - [x] Live price feed component polling Chainlink data
 - [x] Skeleton loading states and dark-mode UX
 - [x] `ConfidentialPiggyBank.sol` as standalone Nox SDK demo
