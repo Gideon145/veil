@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/iExec_Nox-TEE-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Chainlink-Oracle-375BD2?style=for-the-badge&logo=chainlink" />
   <img src="https://img.shields.io/badge/Arbitrum_Sepolia-421614-28A0F0?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Audited-ChainGPT_AI-00c853?style=for-the-badge" />
 </p>
