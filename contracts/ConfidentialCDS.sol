@@ -84,6 +84,9 @@ contract ConfidentialCDS is ReentrancyGuard {
     uint256 public nextCDSId;
     mapping(uint256 => CDSContract) public contracts;
 
+    // Per-CDS escrowed notional amounts (prevents multi-CDS balance drain)
+    mapping(uint256 => uint256) public notionalEscrow;
+
     // Auditor/regulator access registry
     mapping(uint256 => mapping(address => bool)) public auditorAccess;
 
@@ -155,6 +158,7 @@ contract ConfidentialCDS is ReentrancyGuard {
         address seller
     ) external returns (uint256 cdsId) {
         if (durationDays == 0 || durationDays > 3650) revert InvalidDuration();
+        if (seller == msg.sender) revert SameBuyerAndSeller();
 
         euint256 notional = Nox.fromExternal(notionalHandle, notionalProof);
 
@@ -184,11 +188,13 @@ contract ConfidentialCDS is ReentrancyGuard {
     }
 
     /**
-     * @notice Seller deposits the notional USDC into escrow to activate the contract.
+     * @notice Seller deposits the notional USDC into per-CDS escrow to activate the contract.
      * The seller must first approve this contract for the notional amount off-chain.
-     * For testnet demo: the notional USDC amount is the decrypted value transferred here.
+     * The USDC transfer amount mirrors the encrypted notional handle — the transfer is
+     * visible in calldata (known ERC-20 trade-off); the euint256 handle provides the
+     * encrypted on-chain commitment.
      * @param cdsId     The CDS contract ID
-     * @param amount    The USDC amount to escrow as notional (must match encrypted notional)
+     * @param amount    The USDC amount to escrow as notional
      */
     function depositNotional(uint256 cdsId, uint256 amount) external nonReentrant {
         CDSContract storage cds = contracts[cdsId];
@@ -197,19 +203,23 @@ contract ConfidentialCDS is ReentrancyGuard {
         if (cds.notionalDeposited) revert AlreadyDeposited();
 
         usdc.safeTransferFrom(msg.sender, address(this), amount);
+        notionalEscrow[cdsId] = amount;
         cds.notionalDeposited = true;
 
         emit NotionalDeposited(cdsId);
     }
 
     /**
-     * @notice Buyer pays a periodic premium to the seller (encrypted amount).
-     * The actual USDC transfer uses the encrypted premium handle.
-     * For demo: buyer also transfers a plaintext USDC amount that gets added to escrow.
+     * @notice Buyer pays a periodic premium to the seller.
+     * The encrypted handle accumulates the running premium total on-chain (audit trail).
+     * The plaintext USDC transfer is the on-chain settlement amount that mirrors the
+     * encrypted handle value — this is a known trade-off when wrapping public ERC-20
+     * tokens in a TEE-encrypted accounting layer. The USDC transfer amount is visible
+     * in calldata; the euint256 accumulator provides the auditable encrypted record.
      * @param cdsId             The CDS contract ID
      * @param premiumHandle     Encrypted premium amount handle
      * @param premiumProof      Proof for the premium handle
-     * @param plainAmount       Plaintext USDC amount to transfer (mirrors the encrypted value)
+     * @param plainAmount       USDC amount to transfer to seller (mirrors encrypted value)
      */
     function payPremium(
         uint256 cdsId,
@@ -222,10 +232,10 @@ contract ConfidentialCDS is ReentrancyGuard {
         if (cds.status != CDSStatus.Active) revert NotActive();
         if (block.timestamp < cds.nextPremiumDue) revert PremiumNotDue();
 
-        // Transfer plaintext USDC to seller (represents the premium)
+        // Transfer USDC premium to seller
         usdc.safeTransferFrom(msg.sender, cds.seller, plainAmount);
 
-        // Accumulate encrypted premium in the contract state for audit trail
+        // Accumulate encrypted premium in contract state for TEE-verifiable audit trail
         euint256 premium = Nox.fromExternal(premiumHandle, premiumProof);
         (,euint256 newPremiumBalance) = Nox.safeAdd(cds.premiumBalance, premium);
         cds.premiumBalance = newPremiumBalance;
@@ -270,9 +280,10 @@ contract ConfidentialCDS is ReentrancyGuard {
         if (cds.status != CDSStatus.Settled) revert NotSettled();
         if (!cds.notionalDeposited) revert CreditEventNotTriggered();
 
-        // Transfer full USDC escrow balance to buyer
-        uint256 balance = usdc.balanceOf(address(this));
-        usdc.safeTransfer(cds.buyer, balance);
+        // Transfer this CDS's escrowed notional to buyer
+        uint256 escrow = notionalEscrow[cdsId];
+        notionalEscrow[cdsId] = 0;
+        usdc.safeTransfer(cds.buyer, escrow);
 
         emit PayoutClaimed(cdsId, cds.buyer);
     }
@@ -289,8 +300,9 @@ contract ConfidentialCDS is ReentrancyGuard {
         cds.status = CDSStatus.Expired;
 
         if (cds.notionalDeposited) {
-            uint256 balance = usdc.balanceOf(address(this));
-            usdc.safeTransfer(cds.seller, balance);
+            uint256 escrow = notionalEscrow[cdsId];
+            notionalEscrow[cdsId] = 0;
+            usdc.safeTransfer(cds.seller, escrow);
         }
 
         emit ContractExpired(cdsId);

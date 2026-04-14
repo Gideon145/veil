@@ -71,7 +71,7 @@ Think of it as price insurance for your crypto:
 
 ### How the Privacy Works
 
-The critical number — **how much you hedged** — never appears in plaintext anywhere on the blockchain.
+VEIL uses iExec Nox TEE to encrypt the **notional commitment** — the cryptographic proof of what you agreed to hedge — as an on-chain `euint256` handle. The handle is a blind commitment: only the buyer, seller, and any explicitly granted auditor can decrypt it via the iExec Nox ACL.
 
 ```
 Browser (your device)
@@ -86,7 +86,17 @@ Browser (your device)
          never decrypted  ←── not by nodes, not by the chain
 ```
 
-The `euint256` handle stored on-chain is a **blind commitment** to the value. Only the buyer, the seller, and any explicitly granted auditor address can decrypt it via the iExec Nox ACL. The Ethereum network — and anyone reading it — sees only a `bytes32` hash.
+### Privacy Guarantees
+
+| What | Visibility | Detail |
+|---|---|---|
+| Notional commitment (euint256 handle) | **Hidden** — encrypted handle on-chain | Only buyer / seller / granted auditor can decrypt via Nox ACL |
+| Accumulated premium total (euint256) | **Hidden** — encrypted running total | Same ACL |
+| USDC notional deposit amount | **Visible** — plaintext calldata | This is a known ERC-20 wrapping trade-off; the same constraint applies to all public-token DeFi |
+| USDC premium payment amount | **Visible** — plaintext calldata | Mirrors the encrypted handle for settlement; visible in `payPremium` calldata |
+| Trigger price | **Visible** — by design | The price floor you're protecting must be public for trustless oracle settlement |
+| Whether a credit event occurred | **Visible** — by design | Settlement is trustless and requires a public state change |
+| Buyer / seller addresses | **Visible** — by design | Required for on-chain ACL and settlement |
 
 ---
 
