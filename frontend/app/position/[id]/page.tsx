@@ -245,16 +245,6 @@ export default function PositionPage({
               </div>
             </div>
 
-            {/* Settlement panel */}
-            <SettlementPanel
-              cdsId={cdsId}
-              status={cds.status}
-              notionalDeposited={cds.notionalDeposited}
-              buyer={cds.buyer}
-              currentPrice={currentPrice}
-              triggerPrice={cds.triggerPrice}
-            />
-
             {/* Deposit notional — only seller, only when not yet deposited */}
             {!cds.notionalDeposited && (
               <DepositNotionalPanel
@@ -269,6 +259,16 @@ export default function PositionPage({
               cdsId={cdsId}
               notionalDeposited={cds.notionalDeposited}
               onDeposited={() => setCds(d => d ? { ...d, notionalDeposited: true } : d)}
+            />
+
+            {/* Settlement panel */}
+            <SettlementPanel
+              cdsId={cdsId}
+              status={cds.status}
+              notionalDeposited={cds.notionalDeposited}
+              buyer={cds.buyer}
+              currentPrice={currentPrice}
+              triggerPrice={cds.triggerPrice}
             />
 
             {/* Auditor access — only buyer can grant */}

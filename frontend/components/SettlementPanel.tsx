@@ -144,13 +144,19 @@ export function SettlementPanel({
       {/* Actions */}
       {isActive && (
         <div className="space-y-3">
-          <button
-            onClick={handleSettle}
-            disabled={isSettling || !creditEventTriggered}
-            className="w-full bg-red-700 hover:bg-red-600 disabled:bg-gray-800 disabled:text-gray-600 text-white font-medium py-3 rounded-lg transition-colors text-sm"
-          >
-            {isSettling ? "Checking oracle..." : creditEventTriggered ? "Trigger Settlement" : "No Credit Event (Price Above Trigger)"}
-          </button>
+          {!notionalDeposited ? (
+            <div className="w-full bg-gray-900 border border-orange-800/40 rounded-lg py-3 px-4 text-sm text-orange-400 text-center">
+              ⚠ Seller must deposit first — use the shortcut above
+            </div>
+          ) : (
+            <button
+              onClick={handleSettle}
+              disabled={isSettling || !creditEventTriggered}
+              className="w-full bg-red-700 hover:bg-red-600 disabled:bg-gray-800 disabled:text-gray-600 text-white font-medium py-3 rounded-lg transition-colors text-sm"
+            >
+              {isSettling ? "Checking oracle..." : creditEventTriggered ? "Trigger Settlement" : "No Credit Event (Price Above Trigger)"}
+            </button>
+          )}
 
           {/* Demo shortcut */}
           <div>
