@@ -78,7 +78,13 @@ export function CreateCDSForm() {
     } catch (err) {
       console.error("Encryption failed:", err);
       setStep("form");
-      alert("Encryption failed. Make sure MetaMask is connected to Arbitrum Sepolia.");
+      const msg = err instanceof Error ? err.message : String(err);
+      const isNetworkErr = msg.toLowerCase().includes("chain") || msg.toLowerCase().includes("network");
+      alert(
+        isNetworkErr
+          ? "Encryption failed: wrong network. Switch MetaMask to Arbitrum Sepolia and try again."
+          : `Encryption failed: ${msg}`
+      );
     }
   }
 
