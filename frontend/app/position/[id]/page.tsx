@@ -143,7 +143,7 @@ export default function PositionPage({
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-3">404</div>
-          <p className="text-gray-400 mb-4">CDS #{cdsId} not found.</p>
+          <p className="text-gray-400 mb-4">Hedge #{cdsId} not found.</p>
           <Link href="/" className="text-violet-400 hover:underline">
             Back to Dashboard
           </Link>
@@ -161,14 +161,14 @@ export default function PositionPage({
             Dashboard
           </Link>
           <span>/</span>
-          <span className="text-gray-200">CDS #{cdsId}</span>
+          <span className="text-gray-200">Hedge #{cdsId}</span>
         </div>
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold">CDS #{cdsId}</h1>
+              <h1 className="text-3xl font-bold">Hedge #{cdsId}</h1>
               <span className={`text-sm font-semibold ${getStatusColor(cds.status)}`}>
                 {CDS_STATUS[cds.status]}
               </span>
@@ -176,7 +176,7 @@ export default function PositionPage({
             <p className="text-gray-400 text-sm">Matures {maturityDate}</p>
           </div>
           <div className="text-right">
-            <div className="text-xs text-gray-500 mb-1">Trigger Price</div>
+            <div className="text-xs text-gray-500 mb-1">Price Floor</div>
             <div className="text-2xl font-bold font-mono text-red-400">
               {formatChainlinkPrice(cds.triggerPrice)}
             </div>
@@ -202,7 +202,7 @@ export default function PositionPage({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Seller</span>
+                  <span className="text-gray-500">Counterparty (Seller)</span>
                   <span className="font-mono text-white flex items-center gap-2">
                     {shortenAddress(cds.seller)}
                     {address?.toLowerCase() === cds.seller.toLowerCase() && (
@@ -217,15 +217,15 @@ export default function PositionPage({
                   <span className="text-white">{maturityDate}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Notional Status</span>
+                  <span className="text-gray-500">Coverage Status</span>
                   <span className={cds.notionalDeposited ? "text-green-400" : "text-orange-400"}>
-                    {cds.notionalDeposited ? "Deposited" : "Pending"}
+                    {cds.notionalDeposited ? "✓ Escrowed" : "Pending deposit"}
                   </span>
                 </div>
 
                 {cds.notionalHandle && cds.notionalHandle !== "0" && (
                   <div className="pt-2 border-t border-gray-800">
-                    <div className="text-xs text-gray-500 mb-2">Encrypted Notional Handle</div>
+                    <div className="text-xs text-gray-500 mb-2">Encrypted Coverage Handle</div>
                     <div className="bg-gray-950 rounded-lg px-3 py-2 font-mono text-xs text-violet-300 break-all">
                       {cds.notionalHandle}
                     </div>

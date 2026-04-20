@@ -36,9 +36,9 @@ export function CDSCard({
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-mono">CDS #{cdsId}</span>
-              {isBuyer && <span className="text-xs bg-violet-900/50 text-violet-400 px-2 py-0.5 rounded-full">You (Buyer)</span>}
-              {isSeller && <span className="text-xs bg-blue-900/50 text-blue-400 px-2 py-0.5 rounded-full">You (Seller)</span>}
+              <span className="text-xs text-gray-500 font-mono">Hedge #{cdsId}</span>
+              {isBuyer && <span className="text-xs bg-violet-900/50 text-violet-400 px-2 py-0.5 rounded-full">You · Buyer</span>}
+              {isSeller && <span className="text-xs bg-blue-900/50 text-blue-400 px-2 py-0.5 rounded-full">You · Seller</span>}
             </div>
             <div className={`text-sm font-semibold mt-1 ${getStatusColor(status)}`}>
               {CDS_STATUS[status]}
@@ -46,7 +46,7 @@ export function CDSCard({
           </div>
 
           <div className="text-right">
-            <div className="text-xs text-gray-500">Trigger Price</div>
+            <div className="text-xs text-gray-500">Price Floor</div>
             <div className="text-lg font-bold font-mono text-red-400">
               {formatChainlinkPrice(triggerPrice)}
             </div>
@@ -55,7 +55,7 @@ export function CDSCard({
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <div className="text-xs text-gray-500 mb-1">Notional</div>
+            <div className="text-xs text-gray-500 mb-1">Coverage</div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 bg-violet-500 rounded-full" />
               <span className="font-mono text-gray-300 text-xs truncate">

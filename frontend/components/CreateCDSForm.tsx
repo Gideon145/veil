@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
 import { CDS_ABI } from "@/lib/abis";
-import { toChainlinkPrice } from "@/lib/utils";
+import { toChainlinkPrice, getPublicClient, formatChainlinkPrice } from "@/lib/utils";
 import deployments from "@/lib/deployments.json";
 
 export function CreateCDSForm() {
   const { address, isConnected } = useAccount();
   const [step, setStep] = useState<"form" | "encrypting" | "confirm" | "success">("form");
+  const [livePrice, setLivePrice] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPrice() {
+      try {
+        const client = getPublicClient();
+        const result = await client.readContract({
+          address: deployments.ConfidentialCDS as `0x${string}`,
+          abi: CDS_ABI,
+          functionName: "getLatestPrice",
+        });
+        setLivePrice(formatChainlinkPrice(result[0] as unknown as bigint));
+      } catch { /* ignore */ }
+    }
+    fetchPrice();
+  }, []);
 
   const [form, setForm] = useState({
     seller: "",
@@ -124,7 +140,7 @@ export function CreateCDSForm() {
             <div className="text-xs text-gray-600 mt-0.5">Triggers payout below this</div>
           </div>
           <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-3">
-            <div className="text-xs text-gray-500 mb-1">Notional Size</div>
+            <div className="text-xs text-gray-500 mb-1">Coverage Amount</div>
             <div className="text-lg font-bold font-mono text-blue-400">*** ENCRYPTED</div>
             <div className="text-xs text-gray-600 mt-0.5">Hidden via iExec Nox TEE</div>
           </div>
@@ -175,21 +191,31 @@ export function CreateCDSForm() {
             {step === "form" ? "1" : step === "encrypting" ? "2" : "3"}
           </div>
           <h2 className="font-semibold">
-            {step === "form" ? "Configure CDS Terms" :
-             step === "encrypting" ? "Encrypting Notional via Nox TEE..." :
-             "Confirm & Deploy"}
+            {step === "form" ? "Open a Hedge" :
+             step === "encrypting" ? "Encrypting via iExec Nox TEE..." :
+             "Review & Confirm"}
           </h2>
         </div>
         <p className="text-xs text-gray-500 ml-9">
-          The notional amount will be encrypted using iExec Nox before being written to the blockchain.
-          Etherscan will only see a 32-byte handle.
+          Your coverage amount will be encrypted before hitting the blockchain — nobody can see your position size.
         </p>
       </div>
 
       {step === "form" && (
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5">Seller Address</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs text-gray-400">Counterparty Address</label>
+              {address && (
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, seller: address }))}
+                  className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                >
+                  Use my address (testnet demo)
+                </button>
+              )}
+            </div>
             <input
               type="text"
               placeholder="0x..."
@@ -197,12 +223,12 @@ export function CreateCDSForm() {
               onChange={e => setForm(f => ({ ...f, seller: e.target.value }))}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
             />
-            <p className="text-xs text-gray-600 mt-1">The address of the protection seller</p>
+            <p className="text-xs text-gray-600 mt-1">The wallet that will pay you if ETH drops below your floor price</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Notional Amount (USDC)</label>
+              <label className="block text-xs text-gray-400 mb-1.5">Coverage Amount (USDC)</label>
               <input
                 type="number"
                 placeholder="100000"
@@ -210,11 +236,16 @@ export function CreateCDSForm() {
                 onChange={e => setForm(f => ({ ...f, notionalUSDC: e.target.value }))}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
               />
-              <p className="text-xs text-gray-600 mt-1">Will be encrypted — Etherscan sees 0 data</p>
+              <p className="text-xs text-gray-600 mt-1">🔒 Encrypted — nobody sees this on-chain</p>
             </div>
 
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Trigger Price (USD)</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs text-gray-400">Price Floor (USD)</label>
+                {livePrice && (
+                  <span className="text-xs text-green-400 font-mono">Live: {livePrice}</span>
+                )}
+              </div>
               <input
                 type="number"
                 placeholder="1500"
@@ -222,29 +253,27 @@ export function CreateCDSForm() {
                 onChange={e => setForm(f => ({ ...f, triggerPriceUSD: e.target.value }))}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
               />
-              <p className="text-xs text-gray-600 mt-1">ETH/USD price that triggers credit event</p>
+              <p className="text-xs text-gray-600 mt-1">You get paid if ETH drops below this</p>
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label className="block text-xs text-gray-400 mb-1.5">Duration (days)</label>
-              <input
-                type="number"
-                placeholder="30"
-                value={form.durationDays}
-                onChange={e => setForm(f => ({ ...f, durationDays: e.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Premium Interval (days)</label>
-              <input
-                type="number"
-                placeholder="7"
-                value={form.premiumIntervalDays}
-                onChange={e => setForm(f => ({ ...f, premiumIntervalDays: e.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
-              />
+              <div className="flex gap-2">
+                {["7", "14", "30", "90"].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, durationDays: d }))}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      form.durationDays === d
+                        ? "bg-violet-600 text-white"
+                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -253,7 +282,7 @@ export function CreateCDSForm() {
             disabled={!isConnected || !form.notionalUSDC || !form.seller || !form.triggerPriceUSD}
             className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-medium py-3 rounded-lg transition-colors mt-2"
           >
-            {!isConnected ? "Connect Wallet First" : "Encrypt Notional & Continue →"}
+            {!isConnected ? "Connect Wallet First" : "Encrypt & Continue →"}
           </button>
         </div>
       )}
@@ -263,8 +292,8 @@ export function CreateCDSForm() {
           <div className="w-12 h-12 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-300 font-medium">Encrypting via Nox TEE</p>
           <p className="text-gray-500 text-sm mt-1">
-            Your notional amount is being encrypted inside an Intel TDX Trusted Execution Environment.
-            MetaMask will prompt you to sign an encryption request.
+            Your coverage amount is being encrypted inside an Intel TDX Trusted Execution Environment.
+            MetaMask will prompt you to sign — this keeps your position size hidden on-chain.
           </p>
         </div>
       )}
@@ -273,11 +302,11 @@ export function CreateCDSForm() {
         <div className="space-y-4">
           <div className="bg-gray-800/50 rounded-lg p-4 space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Notional Handle</span>
+              <span className="text-gray-500">Nox Handle</span>
               <span className="font-mono text-xs text-violet-400">{encryptedData.handle.slice(0, 18)}...</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Trigger Price</span>
+              <span className="text-gray-500">Price Floor</span>
               <span className="text-red-400 font-mono">${parseFloat(form.triggerPriceUSD).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
@@ -306,7 +335,7 @@ export function CreateCDSForm() {
               disabled={isPending || isConfirming}
               className="flex-2 flex-1 bg-violet-600 hover:bg-violet-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-medium py-3 rounded-lg transition-colors"
             >
-              {isPending ? "Confirm in MetaMask..." : isConfirming ? "Deploying..." : "Deploy CDS Contract →"}
+              {isPending ? "Confirm in MetaMask..." : isConfirming ? "Deploying..." : "Open Hedge →"}
             </button>
           </div>
         </div>
