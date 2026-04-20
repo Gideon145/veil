@@ -7,6 +7,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { PriceFeed } from "@/components/PriceFeed";
 import { SettlementPanel } from "@/components/SettlementPanel";
 import { DepositNotionalPanel } from "@/components/DepositNotionalPanel";
+import { AutoDepositDemo } from "@/components/AutoDepositDemo";
 import { RiskScore } from "@/components/RiskScore";
 import { CDS_ABI } from "@/lib/abis";
 import {
@@ -262,6 +263,13 @@ export default function PositionPage({
                 status={cds.status}
               />
             )}
+
+            {/* Judge/demo shortcut — auto-runs seller flow in one click */}
+            <AutoDepositDemo
+              cdsId={cdsId}
+              notionalDeposited={cds.notionalDeposited}
+              onDeposited={() => setCds(d => d ? { ...d, notionalDeposited: true } : d)}
+            />
 
             {/* Auditor access — only buyer can grant */}
             {isBuyer && (
