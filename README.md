@@ -7,6 +7,7 @@
   <img src="https://img.shields.io/badge/Chainlink-Oracle-375BD2?style=for-the-badge&logo=chainlink" />
   <img src="https://img.shields.io/badge/Arbitrum_Sepolia-421614-28A0F0?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/ChainGPT_AI-Risk_Analysis-00c853?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Audited-ChainGPT_AI-00c853?style=for-the-badge" />
 </p>
@@ -33,6 +34,7 @@
 - [Smart Contracts](#smart-contracts)
 - [Privacy Model](#privacy-model)
 - [Tech Stack](#tech-stack)
+- [ChainGPT AI Integration](#chaingpt-ai-integration)
 - [Frontend](#frontend)
 - [Running Locally](#running-locally)
 - [Environment Variables](#environment-variables)
@@ -348,12 +350,123 @@ Standard ERC-20 test token used as the collateral and premium currency for Arbit
 | **Contract Framework** | Hardhat `2.22` + TypeScript | Compile, test, deploy |
 | **Security** | OpenZeppelin `ReentrancyGuard`, `SafeERC20` | Reentrancy protection, safe token transfers |
 | **Price Oracle** | Chainlink ETH/USD | Trustless settlement trigger — no human arbiter |
+| **AI Risk Analysis** | [ChainGPT AI API](https://app.chaingpt.org/apidashboard) | Live per-position risk assessment — real-time 2-sentence analysis of credit event likelihood |
 | **Network** | Arbitrum Sepolia (`chainId 421614`) | L2 for low-cost, fast finality |
-| **Frontend** | Next.js 16 + Tailwind CSS | React server components + app router |
+| **Frontend** | Next.js 15 + Tailwind CSS | React server components + app router |
 | **Blockchain Hooks** | wagmi `v2` + viem `v2` | Type-safe contract reads/writes |
 | **Wallet Connection** | RainbowKit | Multi-wallet connect modal |
 | **Deployment** | Vercel | Zero-config frontend CI/CD |
 | **Contract Verification** | Arbiscan (Etherscan API) | Source code publicly verifiable |
+
+---
+
+## ChainGPT AI Integration
+
+VEIL uses the **ChainGPT Web3 AI API** to generate live, position-specific risk analysis on every hedge page. This is a real API integration — not hardcoded text — using the ChainGPT B2B LLM endpoint.
+
+### What It Does
+
+Every time a user opens a hedge position page (`/position/[id]`), the frontend fetches a real-time 2-sentence risk assessment from ChainGPT's AI, tailored to that specific position's numbers:
+
+- The current ETH/USD price (from Chainlink oracle)
+- The trigger price (credit event floor)
+- The percentage distance between them
+- The contract status (Active / Settled / Expired)
+
+The AI analyzes ETH volatility, the fear-and-greed index, and the probability of a credit event firing — and returns plain-prose analysis displayed directly in the AI Risk Score card.
+
+### Implementation
+
+#### Server-Side Proxy Route (`frontend/app/api/risk-score/route.ts`)
+
+ChainGPT API calls are made **server-side** via a Next.js API route so the API key is never exposed to the browser.
+
+```typescript
+// POST /api/risk-score
+// Body: { currentPriceUSD: number, triggerPriceUSD: number, status: number }
+// Returns: { insight: string }
+
+export async function POST(req: NextRequest) {
+  const apiKey = process.env.CHAINGPT_API_KEY; // server-side only — never sent to browser
+
+  const { currentPriceUSD, triggerPriceUSD, status } = await req.json();
+
+  const distancePct = (((currentPriceUSD - triggerPriceUSD) / currentPriceUSD) * 100).toFixed(1);
+
+  const question = `You are a concise DeFi risk analyst. Analyze this ETH/USD Credit Default Swap position:
+- Current ETH/USD: $${currentPriceUSD}
+- Price floor (trigger): $${triggerPriceUSD}
+- Distance from trigger: ${distancePct}% above floor
+- Status: ${statusLabel}
+Write exactly 2 sentences of risk analysis. No markdown, plain prose only.`;
+
+  const res = await fetch("https://api.chaingpt.org/chat/stream", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "general_assistant",
+      question,
+      chatHistory: "off",  // stateless — each request is independent
+    }),
+  });
+
+  // ChainGPT returns JSON: { status: true, data: { bot: "..." } }
+  const text = await res.text();
+  const data = JSON.parse(text);
+  const insight = data?.data?.bot ?? data?.bot ?? text.trim();
+
+  return NextResponse.json({ insight });
+}
+```
+
+#### Client-Side Component (`frontend/components/RiskScore.tsx`)
+
+The `RiskScore` component calls the proxy route on mount and displays the AI response:
+
+```typescript
+useEffect(() => {
+  if (currentPriceUSD <= 0 || triggerPriceUSD <= 0) return;
+  setLoading(true);
+
+  fetch("/api/risk-score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPriceUSD, triggerPriceUSD, status }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.insight) setAiInsight(data.insight);
+      else setAiError(true);
+    })
+    .catch(() => setAiError(true))
+    .finally(() => setLoading(false));
+}, [currentPriceUSD, triggerPriceUSD, status]);
+```
+
+While loading, the UI shows `"Analyzing with ChainGPT…"` with a pulse animation. On success, the AI text replaces the loading state and a green dot + `"Powered by ChainGPT AI · live analysis"` appears at the bottom of the card. If the API call fails (key missing, network error), it falls back to math-derived insight from the on-chain data with a red indicator dot.
+
+### API Details
+
+| Parameter | Value |
+|---|---|
+| **Endpoint** | `POST https://api.chaingpt.org/chat/stream` |
+| **Model** | `general_assistant` |
+| **Auth** | `Authorization: Bearer CHAINGPT_API_KEY` |
+| **Chat history** | `"off"` — stateless, one-shot per position load |
+| **Credit cost** | 0.5 credits per call |
+| **Response format** | JSON: `{ status: true, data: { bot: "..." } }` |
+| **Key storage** | `CHAINGPT_API_KEY` env var — server-side only (Vercel env) |
+
+### Security
+
+The API key is stored as a Vercel environment variable (`CHAINGPT_API_KEY`) and only accessed in the server-side Next.js API route. It is never bundled into client-side JavaScript, never exposed in browser network requests, and never committed to the repository.
+
+### ChainGPT Smart Contract Audit
+
+In addition to the live AI risk scoring, `ConfidentialCDS.sol` was audited by the **[ChainGPT AI Smart Contract Auditor](https://app.chaingpt.org/smart-contract-auditor)** on April 14, 2026. Verdict: no critical vulnerabilities found. (See [Security Audit](#security-audit) section below.)
 
 ---
 
@@ -367,23 +480,27 @@ The VEIL frontend gives users a live dashboard of all hedge positions with real-
 |---|---|
 | `/` | **Dashboard** — live list of all CDS positions, real-time ETH/USD price feed, wallet status |
 | `/create` | **Open Hedge** — form to encrypt a notional, set trigger price, duration, premium schedule, and counterparty |
-| `/position/[id]` | **Position Detail** — status, deposit panel (for the seller), settlement button, claim payout |
+| `/position/[id]` | **Position Detail** — status, deposit panel (for the seller), settlement button, claim payout, ChainGPT AI risk card |
 
 ### Components
 
 | Component | Description |
 |---|---|
 | `CDSCard.tsx` | Compact card showing a single position: status badge, trigger price, maturity countdown, deposited state |
-| `CreateCDSForm.tsx` | Multi-step form: encrypt notional via Nox SDK → set trigger → choose counterparty → preview → submit |
-| `DepositNotionalPanel.tsx` | Seller-only panel: USDC approval + `depositNotional()` transaction |
-| `SettlementPanel.tsx` | `checkAndSettle()` button with live oracle price; `claimPayout()` when settled |
+| `CreateCDSForm.tsx` | Multi-step form: encrypt notional via Nox SDK → set trigger → choose counterparty → preview → submit. Uses legacy `gasPrice` (1.5× buffer) for Arbitrum Sepolia MetaMask compatibility. Parses `CDSCreated` event log to link directly to the new hedge page. |
+| `DepositNotionalPanel.tsx` | Seller-only panel: "Get 10k test USDC" mint button + USDC approval + `depositNotional()` transaction with gas buffer |
+| `AutoDepositDemo.tsx` | **Judge/demo shortcut** — one-click seller flow using the publicly documented Hardhat #0 key: mints 5,000 USDC, approves the CDS contract, and calls `depositNotional()` in sequence — no MetaMask switch needed |
+| `SettlementPanel.tsx` | Blocks "Trigger Settlement" if notional not yet deposited. Shows `checkAndSettle()` once deposited; `claimPayout()` when settled with 3-state button: "Confirm in wallet…" → spinning "Confirming on-chain…" → success card |
 | `PriceFeed.tsx` | Live Chainlink ETH/USD price ticker — polls every 30 seconds |
-| `RiskScore.tsx` | Visual risk indicator: distance between current ETH price and the trigger price (% away from event) |
+| `RiskScore.tsx` | ChainGPT AI-powered risk card: calls `/api/risk-score` on mount, shows loading pulse, displays 2-sentence AI analysis with green dot confirmation. Falls back to math-derived insight with red error dot if API is unavailable. |
 | `Navbar.tsx` | RainbowKit connect button, network badge (warns if not on Arbitrum Sepolia) |
 | `Footer.tsx` | Links to GitHub, DoraHacks submission, protocol docs |
 
-### Key UX Notes
+### Key UX Details
 
+- **Deposit-first enforcement** — the SettlementPanel's "Trigger Settlement" button is replaced with `"⚠ Seller must deposit first"` until `notionalDeposited = true`. Deposit panel and demo shortcut are rendered above the settlement section.
+- **Gas compatibility** — all on-chain writes use `getGasPrice()` × 1.5 as a legacy `gasPrice` field. Arbitrum Sepolia's MetaMask rejects EIP-1559 `maxFeePerGas` params; legacy format is fully accepted.
+- **Claim UX** — the Claim Payout button shows 3 distinct states: idle → "Confirm in wallet…" (while MetaMask is open) → spinning "Confirming on-chain…" (while the tx mines) → "Position Closed" success card.
 - **Skeleton loading states** on every card — no layout shift during contract fetches.
 - **Dark-mode first** — all UI elements designed for dark backgrounds.
 - **Privacy banner** on the create page explains encryption before the user submits anything.
@@ -480,6 +597,7 @@ npx hardhat verify --network arbitrumSepolia \
 | Variable | Required | Description |
 |---|---|---|
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | ✅ | WalletConnect Cloud project ID for RainbowKit |
+| `CHAINGPT_API_KEY` | ✅ | ChainGPT B2B API key for AI risk analysis — server-side only, never exposed to browser |
 | `NEXT_PUBLIC_ALCHEMY_ID` | Optional | Alchemy API key for RPC (falls back to public endpoint) |
 
 ---
@@ -501,16 +619,19 @@ veil/
 │   └─ arbitrumSepolia.json         # Live deployed addresses (auto-written by deploy.ts)
 ├─ frontend/
 │   ├─ app/
+│   │   ├─ api/
+│   │   │   └─ risk-score/route.ts  # Server-side ChainGPT API proxy (hides API key from browser)
 │   │   ├─ page.tsx                 # Dashboard — all live positions + ETH price ticker
 │   │   ├─ create/page.tsx          # Open new hedge position (Nox encrypt + createCDS)
-│   │   └─ position/[id]/page.tsx   # Position detail — deposit, settle, claim
+│   │   └─ position/[id]/page.tsx   # Position detail — deposit, settle, claim, AI risk card
 │   ├─ components/
 │   │   ├─ CDSCard.tsx              # Position summary card with status badge
-│   │   ├─ CreateCDSForm.tsx        # Encryption + hedge setup form
-│   │   ├─ DepositNotionalPanel.tsx # Seller USDC deposit flow
-│   │   ├─ SettlementPanel.tsx      # Settlement trigger + payout claim
+│   │   ├─ CreateCDSForm.tsx        # Encryption + hedge setup form (legacy gasPrice)
+│   │   ├─ DepositNotionalPanel.tsx # Seller USDC deposit flow (mint + approve + deposit)
+│   │   ├─ AutoDepositDemo.tsx      # One-click demo deposit using Hardhat #0 key (judges)
+│   │   ├─ SettlementPanel.tsx      # Settlement trigger (gated) + payout claim (3-state)
 │   │   ├─ PriceFeed.tsx            # Live Chainlink ETH/USD ticker
-│   │   ├─ RiskScore.tsx            # % distance from credit event
+│   │   ├─ RiskScore.tsx            # ChainGPT AI risk card with fallback to math analysis
 │   │   ├─ Navbar.tsx               # Wallet connect + network badge
 │   │   └─ Footer.tsx               # Protocol links
 │   ├─ lib/
@@ -522,6 +643,44 @@ veil/
 ├─ .env.example                     # Template — copy to .env and fill in PRIVATE_KEY
 └─ README.md                        # This file
 ```
+
+---
+
+## Judge Demo Flow
+
+**Live at:** https://veil-protocol-tau.vercel.app — connect MetaMask to **Arbitrum Sepolia** (chainId 421614).
+
+This is the fastest path to see all three protocol layers (encryption, oracle, AI) in one flow:
+
+### Step 1 — Create a Hedge (as buyer)
+
+1. Connect your wallet (any MetaMask account on Arbitrum Sepolia).
+2. Get test USDC if needed — the Create form has a "Get test USDC" button that mints to your wallet.
+3. Click **"Open a Hedge"** on the dashboard.
+4. Enter a notional (e.g. 1000 USDC), set trigger price e.g. `$1,500`, 30-day duration, 1-day premium interval, and enter any seller address (you can use `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`).
+5. Submit — `createCDS()` fires with an encrypted Nox handle. You are redirected to the new position page.
+
+### Step 2 — Deposit as Seller (one click, no MetaMask switch)
+
+On the position page:
+
+1. Expand **"⚡ Demo shortcut"** in the Deposit Notional section.
+2. Click **"Run demo deposit"** — this runs the full seller flow (mint → approve → deposit) using the publicly documented Hardhat #0 key (`0xf39F…2266`) with no wallet prompt.
+3. The deposit state updates live. The settlement section unlocks.
+
+### Step 3 — Settle the Hedge
+
+> The live ETH/USD price must be below the trigger price you set. If you set trigger to `$1,500` and ETH is above that, set a higher trigger (e.g. `$5,000`) or wait for a seeded position.
+
+1. Click **"Trigger Settlement"** — calls `checkAndSettle()` which reads the Chainlink oracle on-chain.
+2. If the credit event fires, the status updates to `Settled` and the **"Claim Encrypted Payout"** button appears.
+3. Click **"Claim Encrypted Payout"** — button shows "Confirm in wallet…" then spinning "Confirming on-chain…" — then the position is closed.
+
+### What You'll See on Every Position Page
+
+- **ChainGPT AI Risk Score** card at the top — loads ~2 seconds after page open, shows a 2-sentence live analysis of the position's credit event risk based on real oracle data.
+- **Live ETH/USD feed** in the navbar and settlement section — refreshes every 30 seconds from Chainlink.
+- **Encrypted notional** — the USDC amount is stored as a `euint256` handle on-chain; only the buyer, seller, and granted auditors can decrypt it.
 
 ---
 
@@ -568,14 +727,19 @@ veil/
 - [x] Stale oracle protection (2-hour freshness check in `checkAndSettle`)
 - [x] Reentrancy guards on all state-changing functions
 - [x] Custom Solidity errors (gas-efficient vs string reverts)
-- [x] Full Next.js 16 frontend with wallet integration
-- [x] Live price feed component polling Chainlink data
+- [x] Full Next.js 15 frontend with wallet integration
+- [x] Live price feed component polling Chainlink data every 30 seconds
 - [x] Skeleton loading states and dark-mode UX
 - [x] `ConfidentialPiggyBank.sol` as standalone Nox SDK demo
 - [x] Deployment scripts + seed scripts for reproducibility
+- [x] **ChainGPT AI risk analysis** — server-side API route, real per-position 2-sentence analysis, green/red dot feedback, graceful fallback
+- [x] **Smart contract audited by ChainGPT AI Auditor** — no critical vulnerabilities found
+- [x] **One-click judge demo flow** — `AutoDepositDemo` component handles full seller flow (mint + approve + deposit) without MetaMask switch
+- [x] **Deposit-before-settlement gate** — settlement panel blocked until notional is deposited, with clear `⚠ Seller must deposit first` guidance
+- [x] **Gas compatibility fix** — legacy `gasPrice` × 1.5 resolves all MetaMask gas errors on Arbitrum Sepolia
+- [x] **3-state claim button** — "Confirm in wallet…" → "Confirming on-chain…" → "Position Closed" success card
 - [x] Repository public and documented
 - [x] DoraHacks submission filed
-- [x] Smart contract audited by ChainGPT AI Auditor — no critical vulnerabilities found
 
 ---
 
@@ -610,6 +774,7 @@ The audit confirms the core security patterns — `ReentrancyGuard`, `SafeERC20`
 | Premium accounting | Plaintext on-chain | Encrypted running total (`premiumBalance`) |
 | CDS structure on-chain | Not available in DeFi | ✅ First confidential CDS implementation |
 | Front-running exposure | High — notional is visible pre-execution | Zero — position is encrypted before broadcast |
+| Risk analysis | None / external tools | ✅ Live ChainGPT AI per-position risk scoring |
 
 ---
 
