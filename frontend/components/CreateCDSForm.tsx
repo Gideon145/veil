@@ -214,15 +214,13 @@ export function CreateCDSForm() {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs text-gray-400">Counterparty Address</label>
-              {address && (
-                <button
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, seller: address }))}
-                  className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
-                >
-                  Use my address (testnet demo)
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, seller: "0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014" }))}
+                className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              >
+                Use demo seller
+              </button>
             </div>
             <input
               type="text"
@@ -231,7 +229,7 @@ export function CreateCDSForm() {
               onChange={e => setForm(f => ({ ...f, seller: e.target.value }))}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-600"
             />
-            <p className="text-xs text-gray-600 mt-1">The wallet that will pay you if ETH drops below your floor price</p>
+            <p className="text-xs text-gray-600 mt-1">Must be a different wallet — the counterparty who pays you if ETH crashes</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
