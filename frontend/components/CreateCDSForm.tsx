@@ -92,20 +92,6 @@ export function CreateCDSForm() {
     if (!encryptedData || !form.seller) return;
 
     try {
-      // Fetch current gas fees to avoid "max fee per gas less than base fee" revert
-      const { createPublicClient, http, parseGwei } = await import("viem");
-      const { arbitrumSepolia } = await import("viem/chains");
-      const publicClient = createPublicClient({
-        chain: arbitrumSepolia,
-        transport: http("https://sepolia-rollup.arbitrum.io/rpc"),
-      });
-      const fees = await publicClient.estimateFeesPerGas();
-      // Apply 2x buffer to ensure we're always above base fee
-      const maxFeePerGas = fees.maxFeePerGas
-        ? fees.maxFeePerGas * BigInt(2)
-        : parseGwei("0.5");
-      const maxPriorityFeePerGas = fees.maxPriorityFeePerGas ?? parseGwei("0.001");
-
       writeContract({
         address: deployments.ConfidentialCDS as `0x${string}`,
         abi: CDS_ABI,
@@ -118,8 +104,6 @@ export function CreateCDSForm() {
           BigInt(Number(form.premiumIntervalDays) * 86400),
           form.seller as `0x${string}`,
         ],
-        maxFeePerGas,
-        maxPriorityFeePerGas,
       });
     } catch (err) {
       console.error("Transaction failed:", err);
@@ -216,7 +200,7 @@ export function CreateCDSForm() {
               <label className="text-xs text-gray-400">Counterparty Address</label>
               <button
                 type="button"
-                onClick={() => setForm(f => ({ ...f, seller: "0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014" }))}
+                onClick={() => setForm(f => ({ ...f, seller: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" }))}
                 className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
               >
                 Use demo seller
