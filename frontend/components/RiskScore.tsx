@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface RiskScoreProps {
   triggerPriceUSD: number;
   currentPriceUSD: number;
@@ -7,12 +9,13 @@ interface RiskScoreProps {
 }
 
 export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScoreProps) {
-  // Calculate distance from trigger
+  const [aiInsight, setAiInsight] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const distancePct = currentPriceUSD > 0
     ? ((currentPriceUSD - triggerPriceUSD) / currentPriceUSD) * 100
     : 0;
 
-  // Score: 0 (high risk) to 100 (low risk)
   const score = Math.max(0, Math.min(100, Math.round(distancePct * 2)));
 
   const getRiskLabel = () => {
@@ -26,13 +29,27 @@ export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScor
 
   const risk = getRiskLabel();
 
-  const getInsight = () => {
+  const fallbackInsight = () => {
     if (status === 1) return "Credit event has fired. Settlement is pending.";
-    if (distancePct < 5) return "ETH/USD is dangerously close to the trigger price. High probability of default within the contract period.";
-    if (distancePct < 15) return "ETH/USD within 15% of trigger. Seller exposure is elevated. Monitor closely.";
-    if (distancePct < 30) return "Moderate margin above trigger. Contract is in a neutral zone given typical ETH volatility.";
-    return `ETH/USD is ${distancePct.toFixed(1)}% above trigger price. Credit event is unlikely in the near term based on current positioning.`;
+    if (distancePct < 5) return "ETH/USD is dangerously close to the trigger price.";
+    if (distancePct < 15) return "ETH/USD within 15% of trigger. Monitor closely.";
+    if (distancePct < 30) return "Moderate margin above trigger.";
+    return `ETH/USD is ${distancePct.toFixed(1)}% above trigger price.`;
   };
+
+  useEffect(() => {
+    if (currentPriceUSD <= 0 || triggerPriceUSD <= 0) return;
+    setLoading(true);
+    fetch("/api/risk-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPriceUSD, triggerPriceUSD, status }),
+    })
+      .then(r => r.json())
+      .then(data => { if (data.insight) setAiInsight(data.insight); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [currentPriceUSD, triggerPriceUSD, status]);
 
   return (
     <div className={`bg-gray-900 border ${risk.bg} rounded-xl p-5`}>
@@ -46,7 +63,6 @@ export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScor
         </div>
       </div>
 
-      {/* Visual bar */}
       <div className="h-2 bg-gray-800 rounded-full mb-4 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${
@@ -56,12 +72,20 @@ export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScor
         />
       </div>
 
-      <p className="text-sm text-gray-400">{getInsight()}</p>
+      {loading ? (
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-pulse" />
+          Analyzing with ChainGPT…
+        </div>
+      ) : (
+        <p className="text-sm text-gray-400">{aiInsight ?? fallbackInsight()}</p>
+      )}
 
       <div className="mt-3 pt-3 border-t border-gray-800 text-xs text-gray-600 flex items-center gap-1.5">
-        <div className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
-        Powered by ChainGPT + on-chain data
+        <div className={`w-1.5 h-1.5 rounded-full ${aiInsight ? "bg-green-600" : "bg-gray-600"}`} />
+        {aiInsight ? "Powered by ChainGPT AI · live analysis" : "Powered by ChainGPT + on-chain data"}
       </div>
     </div>
   );
 }
+
