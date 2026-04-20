@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseUnits } from "viem";
+import { parseUnits, decodeEventLog } from "viem";
 import { CDS_ABI } from "@/lib/abis";
 import { toChainlinkPrice, getPublicClient, formatChainlinkPrice } from "@/lib/utils";
 import deployments from "@/lib/deployments.json";
@@ -41,7 +41,18 @@ export function CreateCDSForm() {
   } | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ hash: txHash });
+  const { isLoading: isConfirming, isSuccess, data: receipt, error: receiptError } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const cdsId = (() => {
+    if (!receipt) return null;
+    for (const log of receipt.logs) {
+      try {
+        const decoded = decodeEventLog({ abi: CDS_ABI, data: log.data, topics: log.topics });
+        if (decoded.eventName === "CDSCreated") return (decoded.args as { cdsId: bigint }).cdsId;
+      } catch { /* skip non-matching logs */ }
+    }
+    return null;
+  })();
 
   async function handleEncryptNotional() {
     if (!form.notionalUSDC || !address) return;
@@ -165,10 +176,10 @@ export function CreateCDSForm() {
             View on Arbiscan →
           </a>
           <a
-            href="/"
+            href={cdsId != null ? `/position/${cdsId}` : "/"}
             className="flex-1 text-center text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg py-2.5 transition-colors font-medium"
           >
-            Back to Dashboard →
+            {cdsId != null ? `View Hedge #${cdsId} →` : "Back to Dashboard →"}
           </a>
         </div>
       </div>
