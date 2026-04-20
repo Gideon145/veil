@@ -103,6 +103,16 @@ export function CreateCDSForm() {
     if (!encryptedData || !form.seller) return;
 
     try {
+      const client = getPublicClient();
+      const fees = await client.estimateFeesPerGas();
+      // Add 30% buffer so testnet base-fee fluctuations don't cause rejections
+      const maxFeePerGas = fees.maxFeePerGas
+        ? (fees.maxFeePerGas * BigInt(130)) / BigInt(100)
+        : undefined;
+      const maxPriorityFeePerGas = fees.maxPriorityFeePerGas
+        ? (fees.maxPriorityFeePerGas * BigInt(130)) / BigInt(100)
+        : undefined;
+
       writeContract({
         address: deployments.ConfidentialCDS as `0x${string}`,
         abi: CDS_ABI,
@@ -115,6 +125,8 @@ export function CreateCDSForm() {
           BigInt(Number(form.premiumIntervalDays) * 86400),
           form.seller as `0x${string}`,
         ],
+        maxFeePerGas,
+        maxPriorityFeePerGas,
       });
     } catch (err) {
       console.error("Transaction failed:", err);
