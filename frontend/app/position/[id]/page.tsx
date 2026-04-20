@@ -222,6 +222,13 @@ export default function PositionPage({
                     {cds.notionalDeposited ? "✓ Escrowed" : "Pending deposit"}
                   </span>
                 </div>
+                {!cds.notionalDeposited && (
+                  <div className="mt-1 bg-orange-950/30 border border-orange-800/30 rounded-lg px-3 py-2.5 text-xs text-orange-300/80 leading-relaxed">
+                    <span className="font-semibold text-orange-300">Waiting for counterparty to deposit.</span>{" "}
+                    The seller ({shortenAddress(cds.seller)}) must lock USDC into escrow before this hedge becomes active.
+                    Once they deposit, if ETH drops below your price floor, the contract automatically pays you out — no action needed on your end.
+                  </div>
+                )}
 
                 {cds.notionalHandle && cds.notionalHandle !== "0" && (
                   <div className="pt-2 border-t border-gray-800">
