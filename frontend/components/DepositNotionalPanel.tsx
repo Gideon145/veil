@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
 import { parseUnits, formatUnits } from "viem";
+import { getPublicClient } from "@/lib/utils";
 import { CDS_ABI, USDC_ABI } from "@/lib/abis";
 import DEPLOYMENTS from "@/lib/deployments.json";
 
@@ -42,6 +43,29 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
 
   const { writeContract: approve, data: approveTx } = useWriteContract();
   const { writeContract: deposit, data: depositTx } = useWriteContract();
+  const { writeContract: mint, data: mintTx } = useWriteContract();
+  const [minting, setMinting] = useState(false);
+
+  const { isSuccess: mintSuccess, isLoading: mintConfirming } = useWaitForTransactionReceipt({ hash: mintTx });
+
+  async function handleMint() {
+    if (!address) return;
+    setMinting(true);
+    try {
+      const client = getPublicClient();
+      const price = await client.getGasPrice();
+      const gasPrice = (price * BigInt(150)) / BigInt(100);
+      mint({
+        address: usdcAddress,
+        abi: USDC_ABI,
+        functionName: "mint",
+        args: [address, parseUnits("10000", 6)],
+        gasPrice,
+      });
+    } finally {
+      setMinting(false);
+    }
+  }
 
   const { isSuccess: approveSuccess } = useWaitForTransactionReceipt({
     hash: approveTx,
@@ -57,28 +81,25 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
   const hasEnoughAllowance = allowance !== undefined && allowance >= amountRaw;
   const hasEnoughBalance = usdcBalance !== undefined && usdcBalance >= amountRaw;
 
-  async function getFees() {
-    const { createPublicClient, http, parseGwei } = await import("viem");
+  async function getGasPrice() {
+    const { createPublicClient, http } = await import("viem");
     const { arbitrumSepolia } = await import("viem/chains");
     const client = createPublicClient({ chain: arbitrumSepolia, transport: http("https://sepolia-rollup.arbitrum.io/rpc") });
-    const fees = await client.estimateFeesPerGas();
-    return {
-      maxFeePerGas: fees.maxFeePerGas ? fees.maxFeePerGas * BigInt(2) : parseGwei("0.5"),
-      maxPriorityFeePerGas: fees.maxPriorityFeePerGas ?? parseGwei("0.001"),
-    };
+    const price = await client.getGasPrice();
+    return { gasPrice: (price * BigInt(150)) / BigInt(100) };
   }
 
   async function handleApprove() {
     if (!amount || !amountRaw) return;
     setPhase("approving");
     try {
-      const gasFees = await getFees();
+      const gas = await getGasPrice();
       approve({
         address: usdcAddress,
         abi: USDC_ABI,
         functionName: "approve",
         args: [cdsAddress, amountRaw],
-        ...gasFees,
+        ...gas,
       });
     } finally {
       setPhase("idle");
@@ -89,13 +110,13 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
     if (!amount || !amountRaw) return;
     setPhase("depositing");
     try {
-      const gasFees = await getFees();
+      const gas = await getGasPrice();
       deposit({
         address: cdsAddress,
         abi: CDS_ABI,
         functionName: "depositNotional",
         args: [BigInt(cdsId), amountRaw],
-        ...gasFees,
+        ...gas,
       });
     } finally {
       setPhase("idle");
@@ -135,14 +156,21 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
         Deposit USDC into escrow to activate protection. You are the seller — funds are held until maturity or credit event.
       </p>
 
-      {usdcBalance !== undefined && (
-        <div className="text-xs text-gray-500 mb-3">
-          Wallet balance:{" "}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs text-gray-500">
+          Balance:{" "}
           <span className="text-gray-300 font-mono">
-            {parseFloat(formatUnits(usdcBalance, 6)).toLocaleString()} USDC
+            {usdcBalance !== undefined ? parseFloat(formatUnits(usdcBalance, 6)).toLocaleString() : "—"} USDC
           </span>
         </div>
-      )}
+        <button
+          onClick={handleMint}
+          disabled={minting || mintConfirming}
+          className="text-xs text-violet-400 hover:text-violet-300 border border-violet-800/50 px-2 py-1 rounded transition-colors disabled:opacity-50"
+        >
+          {mintConfirming ? "Minting…" : mintSuccess ? "✓ Minted" : "+ Get 10k test USDC"}
+        </button>
+      </div>
 
       <div className="flex gap-3 mb-4">
         <input
