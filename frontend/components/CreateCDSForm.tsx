@@ -104,12 +104,10 @@ export function CreateCDSForm() {
 
     try {
       const client = getPublicClient();
-      // Fetch pending block to get the most current baseFee
-      const block = await client.getBlock({ blockTag: "pending" });
-      const baseFee = block.baseFeePerGas ?? BigInt(20_000_000);
-      // EIP-1559: maxFeePerGas = 2x baseFee + tip — guarantees inclusion across 2 blocks of base-fee growth
-      const maxPriorityFeePerGas = BigInt(1_000_000); // 0.001 gwei tip
-      const maxFeePerGas = baseFee * BigInt(2) + maxPriorityFeePerGas;
+      // Use eth_gasPrice (legacy tx) — avoids EIP-1559 maxFeePerGas/baseFee
+      // mismatch issues on Arbitrum Sepolia through MetaMask
+      const currentGasPrice = await client.getGasPrice();
+      const gasPrice = (currentGasPrice * BigInt(150)) / BigInt(100); // 1.5x buffer
 
       writeContract({
         address: deployments.ConfidentialCDS as `0x${string}`,
@@ -123,8 +121,7 @@ export function CreateCDSForm() {
           BigInt(Number(form.premiumIntervalDays) * 86400),
           form.seller as `0x${string}`,
         ],
-        maxFeePerGas,
-        maxPriorityFeePerGas,
+        gasPrice,
       });
     } catch (err) {
       console.error("Transaction failed:", err);
