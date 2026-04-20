@@ -104,14 +104,12 @@ export function CreateCDSForm() {
 
     try {
       const client = getPublicClient();
-      const fees = await client.estimateFeesPerGas();
-      // Add 30% buffer so testnet base-fee fluctuations don't cause rejections
-      const maxFeePerGas = fees.maxFeePerGas
-        ? (fees.maxFeePerGas * BigInt(130)) / BigInt(100)
-        : undefined;
-      const maxPriorityFeePerGas = fees.maxPriorityFeePerGas
-        ? (fees.maxPriorityFeePerGas * BigInt(130)) / BigInt(100)
-        : undefined;
+      // Fetch pending block to get the most current baseFee
+      const block = await client.getBlock({ blockTag: "pending" });
+      const baseFee = block.baseFeePerGas ?? BigInt(20_000_000);
+      // EIP-1559: maxFeePerGas = 2x baseFee + tip — guarantees inclusion across 2 blocks of base-fee growth
+      const maxPriorityFeePerGas = BigInt(1_000_000); // 0.001 gwei tip
+      const maxFeePerGas = baseFee * BigInt(2) + maxPriorityFeePerGas;
 
       writeContract({
         address: deployments.ConfidentialCDS as `0x${string}`,
