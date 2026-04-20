@@ -11,6 +11,7 @@ interface RiskScoreProps {
 export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScoreProps) {
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [aiError, setAiError] = useState(false);
 
   const distancePct = currentPriceUSD > 0
     ? ((currentPriceUSD - triggerPriceUSD) / currentPriceUSD) * 100
@@ -40,14 +41,18 @@ export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScor
   useEffect(() => {
     if (currentPriceUSD <= 0 || triggerPriceUSD <= 0) return;
     setLoading(true);
+    setAiError(false);
     fetch("/api/risk-score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentPriceUSD, triggerPriceUSD, status }),
     })
       .then(r => r.json())
-      .then(data => { if (data.insight) setAiInsight(data.insight); })
-      .catch(() => {})
+      .then(data => {
+        if (data.insight) setAiInsight(data.insight);
+        else setAiError(true);
+      })
+      .catch(() => setAiError(true))
       .finally(() => setLoading(false));
   }, [currentPriceUSD, triggerPriceUSD, status]);
 
@@ -82,8 +87,8 @@ export function RiskScore({ triggerPriceUSD, currentPriceUSD, status }: RiskScor
       )}
 
       <div className="mt-3 pt-3 border-t border-gray-800 text-xs text-gray-600 flex items-center gap-1.5">
-        <div className={`w-1.5 h-1.5 rounded-full ${aiInsight ? "bg-green-600" : "bg-gray-600"}`} />
-        {aiInsight ? "Powered by ChainGPT AI · live analysis" : "Powered by ChainGPT + on-chain data"}
+        <div className={`w-1.5 h-1.5 rounded-full ${aiInsight ? "bg-green-600" : aiError ? "bg-red-800" : "bg-gray-600"}`} />
+        {aiInsight ? "Powered by ChainGPT AI · live analysis" : aiError ? "ChainGPT unavailable · on-chain data" : "Powered by ChainGPT + on-chain data"}
       </div>
     </div>
   );

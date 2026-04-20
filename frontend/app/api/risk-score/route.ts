@@ -42,8 +42,16 @@ Write exactly 2 sentences of risk analysis for the buyer. Be specific about the 
       return NextResponse.json({ error: err }, { status: res.status });
     }
 
-    const data = await res.json();
-    const insight = data?.data?.bot ?? data?.bot ?? "";
+    // ChainGPT returns full JSON by default; fall back to raw text if not parseable
+    const text = await res.text();
+    let insight = "";
+    try {
+      const data = JSON.parse(text);
+      insight = data?.data?.bot ?? data?.bot ?? text.trim();
+    } catch {
+      insight = text.trim();
+    }
+    if (!insight) return NextResponse.json({ error: "Empty response from ChainGPT" }, { status: 502 });
     return NextResponse.json({ insight });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

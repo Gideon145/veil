@@ -29,7 +29,7 @@ export function SettlementPanel({
   const { writeContract: claim, data: claimTx, isPending: isClaiming } = useWriteContract();
 
   useWaitForTransactionReceipt({ hash: settleTx });
-  const { isSuccess: claimed } = useWaitForTransactionReceipt({ hash: claimTx });
+  const { isSuccess: claimed, isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: claimTx });
 
   const isBuyer = address?.toLowerCase() === buyer.toLowerCase();
   const isActive = status === 0;
@@ -285,10 +285,19 @@ export function SettlementPanel({
 
               <button
                 onClick={handleClaim}
-                disabled={isClaiming || !notionalDeposited}
+                disabled={isClaiming || isConfirming || !notionalDeposited}
                 className="w-full bg-green-700 hover:bg-green-600 disabled:bg-gray-800 disabled:text-gray-600 text-white font-medium py-3 rounded-lg transition-colors"
               >
-                {isClaiming ? "Claiming..." : "Claim Encrypted Payout"}
+                {isClaiming
+                  ? "Confirm in wallet…"
+                  : isConfirming
+                  ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Confirming on-chain…
+                    </span>
+                  )
+                  : "Claim Encrypted Payout"}
               </button>
             </>
           )}
