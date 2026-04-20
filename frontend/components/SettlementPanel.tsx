@@ -36,37 +36,70 @@ export function SettlementPanel({
   const isSettled = status === 1;
   const creditEventTriggered = currentPrice !== null && currentPrice <= triggerPrice;
 
-  async function getFees() {
-    const { createPublicClient, http, parseGwei } = await import("viem");
+  const [autoSettling, setAutoSettling] = useState(false);
+  const [autoSettleTx, setAutoSettleTx] = useState<string | null>(null);
+  const [autoSettleError, setAutoSettleError] = useState<string | null>(null);
+
+  async function getGasPrice() {
+    const { createPublicClient, http } = await import("viem");
     const { arbitrumSepolia } = await import("viem/chains");
     const client = createPublicClient({ chain: arbitrumSepolia, transport: http("https://sepolia-rollup.arbitrum.io/rpc") });
-    const fees = await client.estimateFeesPerGas();
-    return {
-      maxFeePerGas: fees.maxFeePerGas ? fees.maxFeePerGas * BigInt(2) : parseGwei("0.5"),
-      maxPriorityFeePerGas: fees.maxPriorityFeePerGas ?? parseGwei("0.001"),
-    };
+    const price = await client.getGasPrice();
+    return { gasPrice: (price * BigInt(150)) / BigInt(100) };
   }
 
   async function handleSettle() {
-    const gasFees = await getFees();
+    const gas = await getGasPrice();
     settle({
       address: deployments.ConfidentialCDS as `0x${string}`,
       abi: CDS_ABI,
       functionName: "checkAndSettle",
       args: [BigInt(cdsId)],
-      ...gasFees,
+      ...gas,
     });
   }
 
   async function handleClaim() {
-    const gasFees = await getFees();
+    const gas = await getGasPrice();
     claim({
       address: deployments.ConfidentialCDS as `0x${string}`,
       abi: CDS_ABI,
       functionName: "claimPayout",
       args: [BigInt(cdsId)],
-      ...gasFees,
+      ...gas,
     });
+  }
+
+  // Demo key: publicly documented Hardhat #0 — safe for testnet only
+  const DEMO_PK = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
+
+  async function handleAutoSettle() {
+    setAutoSettling(true);
+    setAutoSettleError(null);
+    try {
+      const { createWalletClient, createPublicClient, http } = await import("viem");
+      const { privateKeyToAccount } = await import("viem/accounts");
+      const { arbitrumSepolia } = await import("viem/chains");
+      const account = privateKeyToAccount(DEMO_PK);
+      const transport = http("https://sepolia-rollup.arbitrum.io/rpc");
+      const publicClient = createPublicClient({ chain: arbitrumSepolia, transport });
+      const walletClient = createWalletClient({ account, chain: arbitrumSepolia, transport });
+      const gasPrice = await publicClient.getGasPrice();
+      const gas = { gasPrice: (gasPrice * BigInt(150)) / BigInt(100) };
+      const hash = await walletClient.writeContract({
+        address: deployments.ConfidentialCDS as `0x${string}`,
+        abi: CDS_ABI,
+        functionName: "checkAndSettle",
+        args: [BigInt(cdsId)],
+        ...gas,
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setAutoSettleTx(hash);
+    } catch (err) {
+      setAutoSettleError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAutoSettling(false);
+    }
   }
 
   if (!isActive && !isSettled) return null;
@@ -119,7 +152,7 @@ export function SettlementPanel({
             {isSettling ? "Checking oracle..." : creditEventTriggered ? "Trigger Settlement" : "No Credit Event (Price Above Trigger)"}
           </button>
 
-          {/* Demo button — for hackathon demo this simulates a credit event */}
+          {/* Demo shortcut */}
           <div>
             <button
               onClick={() => setShowDemo(v => !v)}
@@ -128,9 +161,46 @@ export function SettlementPanel({
               Demo mode {showDemo ? "▲" : "▼"}
             </button>
             {showDemo && (
-              <div className="mt-2 bg-yellow-950/30 border border-yellow-800/50 rounded-lg p-3 text-xs text-yellow-400">
-                In the live demo, set the trigger price ABOVE current ETH/USD when creating the CDS to simulate a credit event immediately.
-                The trigger price is public — this is realistic (TradFi contracts specify public strike conditions; the sensitivity is the notional amount, which stays encrypted).
+              <div className="mt-2 bg-yellow-950/30 border border-yellow-800/50 rounded-xl p-3 space-y-3">
+                <p className="text-xs text-yellow-400/80 leading-relaxed">
+                  To trigger a credit event: create a new hedge with a <strong>Price Floor above the current ETH price</strong> (e.g. $9,999).
+                  Then use the ⚡ Demo shortcut below to deposit, and click "Force settle" here — the oracle will confirm ETH is below that floor and fire the event.
+                </p>
+                {creditEventTriggered ? (
+                  <div className="space-y-2">
+                    {autoSettleTx ? (
+                      <div className="space-y-1">
+                        <div className="text-xs text-green-400 font-medium">✓ Credit event fired on-chain</div>
+                        <a
+                          href={`https://sepolia.arbiscan.io/tx/${autoSettleTx}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-violet-400 hover:underline"
+                        >
+                          View settlement tx →
+                        </a>
+                        <div className="text-xs text-gray-500 mt-1">Refresh page — buyer can now claim payout.</div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleAutoSettle}
+                        disabled={autoSettling}
+                        className="w-full text-sm font-medium py-2.5 rounded-lg bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-black transition-colors"
+                      >
+                        {autoSettling ? "Settling on-chain…" : "⚡ Force settle via demo key"}
+                      </button>
+                    )}
+                    {autoSettleError && (
+                      <div className="text-xs text-red-400 bg-red-950/40 border border-red-800/40 rounded-lg px-3 py-2 break-words">
+                        {autoSettleError}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs text-yellow-600">
+                    Price floor must be above current ETH price to force settle. Current ETH: ${currentPrice ? (Number(currentPrice) / 1e8).toLocaleString() : "…"} — floor: ${(Number(triggerPrice) / 1e8).toLocaleString()}
+                  </div>
+                )}
               </div>
             )}
           </div>
