@@ -40,8 +40,8 @@ export function CreateCDSForm() {
     proof: `0x${string}`;
   } | null>(null);
 
-  const { writeContract, data: txHash, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ hash: txHash });
 
   async function handleEncryptNotional() {
     if (!form.notionalUSDC || !address) return;
@@ -125,6 +125,8 @@ export function CreateCDSForm() {
       console.error("Transaction failed:", err);
     }
   }
+
+  const txError = writeError || receiptError;
 
   if (isSuccess) {
     return (
@@ -326,8 +328,15 @@ export function CreateCDSForm() {
           </div>
 
           <div className="bg-violet-950/30 border border-violet-800/50 rounded-lg p-3 text-xs text-violet-300">
-            ✓ Notional encrypted. Etherscan will show only a 32-byte handle — the actual USDC amount is invisible on-chain.
+            ✓ Coverage encrypted. Etherscan will show only a 32-byte handle — the actual USDC amount is invisible on-chain.
           </div>
+
+          {txError && (
+            <div className="bg-red-950/40 border border-red-800/60 rounded-lg p-3 text-xs text-red-300">
+              <span className="font-semibold">Error: </span>
+              {txError.message.split(".")[0]}
+            </div>
+          )}
 
           <div className="flex gap-3">
             <button
