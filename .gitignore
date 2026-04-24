@@ -25,3 +25,33 @@ Thumbs.db
 
 # Parry Protocol — separate git repo, tracked independently
 parry/
+
+# Other projects — separate repos, live in workspace root but not part of Veil
+cope-finance/
+forge-protocol/
+rainmaker-protocol/
+veil/
+
+# Workspace planning / scratch files
+*.json
+!package.json
+!package-lock.json
+!hardhat.config.json
+agentspend.json
+agora.json
+autovend.json
+buildr.json
+devfolio_response.json
+dispatch.json
+flowpay.json
+letalicelead.json
+page1.json
+page1_complete.json
+paygenticarena.json
+rainmaker.json
+whisper.json
+all_projects.txt
+veil-context.txt
+veil-logo.svg
+watermark.svg
+thumbnail.svg
