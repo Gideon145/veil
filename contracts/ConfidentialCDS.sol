@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2026 VEIL Protocol. All rights reserved.
-// VEIL — Hedge Privately. Settle Trustlessly.
+// VEIL Protocol — Hedge Privately. Settle Trustlessly.
 // https://github.com/Gideon145/veil
-//
-// This software is proprietary. Reproduction, modification or redistribution
-// without express written permission from the VEIL authors is prohibited.
 pragma solidity ^0.8.28;
 
 import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";

@@ -1,14 +1,14 @@
 # VEIL Protocol ™
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Solidity-0.8.27-363636?style=for-the-badge&logo=solidity" />
+  <img src="https://img.shields.io/badge/Solidity-0.8.28-363636?style=for-the-badge&logo=solidity" />
   <img src="https://img.shields.io/badge/Hardhat-2.22-yellow?style=for-the-badge" />
   <img src="https://img.shields.io/badge/iExec_Nox-TEE-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Chainlink-Oracle-375BD2?style=for-the-badge&logo=chainlink" />
   <img src="https://img.shields.io/badge/Arbitrum_Sepolia-421614-28A0F0?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/ChainGPT_AI-Risk_Analysis-00c853?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Audited-ChainGPT_AI-00c853?style=for-the-badge" />
 </p>
 
@@ -94,7 +94,7 @@ Browser (your device)
 |---|---|---|
 | Notional commitment (euint256 handle) | **Hidden** — encrypted handle on-chain | Only buyer / seller / granted auditor can decrypt via Nox ACL |
 | Accumulated premium total (euint256) | **Hidden** — encrypted running total | Same ACL |
-| USDC notional deposit amount | **Visible** — plaintext calldata | This is a known ERC-20 wrapping trade-off; the same constraint applies to all public-token DeFi |
+| USDC notional deposit amount | **Hidden** — wrapped to cUSDC via ERC-7984 | Seller deposits via `confidentialTransferFrom`; the amount is encrypted as a Nox `euint256` handle inside the CT contract |
 | USDC premium payment amount | **Visible** — plaintext calldata | Mirrors the encrypted handle for settlement; visible in `payPremium` calldata |
 | Trigger price | **Visible** — by design | The price floor you're protecting must be public for trustless oracle settlement |
 | Whether a credit event occurred | **Visible** — by design | Settlement is trustless and requires a public state change |
@@ -179,8 +179,13 @@ Buyer (Browser)                  ConfidentialCDS.sol          Chainlink ETH/USD
       │    [euint256 stored on-chain]       │                         │
       │                                    │                         │
 Seller│                                    │                         │
-      ├─ 3. approve(cdsAddr, amt)   ───►  USDC                       │
-      ├─ 4. depositNotional(id, amt) ──► │ escrowed USDC locked │    │
+      ├─ 3. approve(usdcAddr, amt)  ───►  MockUSDC                   │
+      ├─ 4. wrap(amt)               ───►  ConfidentialUSDC (ERC-7984)│
+      ├─ 5. setOperator(cdsAddr)    ───►  cUSDC operator set         │
+      ├─ 6. depositNotional(        ───► │ cUSDC locked (encrypted)│ │
+      │       id,                        │                           │
+      │       notionalHandle,            │                           │
+      │       notionalProof      )       │                           │
       │                                    │                         │
 Buyer │                                    │                         │
       ├─ 5. payPremium(             ───► │ premium → seller    │    │
@@ -734,7 +739,7 @@ On the position page:
 - [x] Deployment scripts + seed scripts for reproducibility
 - [x] **ChainGPT AI risk analysis** — server-side API route, real per-position 2-sentence analysis, green/red dot feedback, graceful fallback
 - [x] **Smart contract audited by ChainGPT AI Auditor** — no critical vulnerabilities found
-- [x] **One-click judge demo flow** — `AutoDepositDemo` component handles full seller flow (mint + approve + deposit) without MetaMask switch
+- [x] **Full CT deposit flow** — 6-step `DepositNotionalPanel`: approve USDC → wrap to cUSDC (ERC-7984) → setOperator → Nox encrypt → `depositNotional`
 - [x] **Deposit-before-settlement gate** — settlement panel blocked until notional is deposited, with clear `⚠ Seller must deposit first` guidance
 - [x] **Gas compatibility fix** — legacy `gasPrice` × 1.5 resolves all MetaMask gas errors on Arbitrum Sepolia
 - [x] **3-state claim button** — "Confirm in wallet…" → "Confirming on-chain…" → "Position Closed" success card
