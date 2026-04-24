@@ -163,6 +163,7 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
         abi: CDS_ABI,
         functionName: "depositNotional",
         args: [BigInt(cdsId), handle, handleProof],
+        gas: 800_000n, // explicit limit — bypasses estimateGas which fails on Nox TEE calls
         ...gas,
       });
       setDepositTxHash(hash);
