@@ -1,9 +1,10 @@
-"use client";
+// AutoDepositDemo is disabled — depositNotional now requires Nox TEE encryption
+// via DepositNotionalPanel's 4-step CT flow. Kept as a stub to avoid import errors.
 
-import { useState } from "react";
-import { parseUnits } from "viem";
-import { CDS_ABI, USDC_ABI } from "@/lib/abis";
-import DEPLOYMENTS from "@/lib/deployments.json";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function AutoDepositDemo(_props: { cdsId: number; notionalDeposited: boolean; onDeposited: () => void }) {
+  return null;
+}
 
 // Publicly documented Hardhat account #0 — safe for testnet demo only
 const DEMO_SELLER_PK = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
