@@ -1,3 +1,6 @@
+# Vercel project config — never commit, Vercel reads from dashboard
+.vercel
+
 # Environment — contains private keys, NEVER commit
 .env
 .env.*
