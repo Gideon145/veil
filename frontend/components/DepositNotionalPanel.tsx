@@ -37,7 +37,7 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const cdsAddress   = DEPLOYMENTS.ConfidentialCDS as `0x${string}`;
-  const cUsdcAddress = (DEPLOYMENTS as Record<string, string>).ConfidentialUSDC as `0x${string}`;
+  const cUsdcAddress = DEPLOYMENTS.ConfidentialUSDC as `0x${string}`;
   const usdcAddress  = DEPLOYMENTS.MockUSDC as `0x${string}`;
 
   const isSeller = address?.toLowerCase() === seller.toLowerCase();
