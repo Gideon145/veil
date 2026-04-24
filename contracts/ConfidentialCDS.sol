@@ -5,9 +5,10 @@
 //
 // This software is proprietary. Reproduction, modification or redistribution
 // without express written permission from the VEIL authors is prohibited.
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.28;
 
 import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
+import {IERC20ToERC7984Wrapper} from "@iexec-nox/nox-confidential-contracts/contracts/interfaces/IERC20ToERC7984Wrapper.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -79,13 +80,16 @@ contract ConfidentialCDS is ReentrancyGuard {
     // ============ State ============
 
     AggregatorV3Interface public immutable priceFeed;
+    // Confidential Token (ERC-7984) wrapper — notional escrow uses hidden balances
+    IERC20ToERC7984Wrapper public immutable cUsdc;
+    // Underlying plain ERC-20 — used for plaintext premium payments only
     IERC20 public immutable usdc;
 
     uint256 public nextCDSId;
     mapping(uint256 => CDSContract) public contracts;
 
-    // Per-CDS escrowed notional amounts (prevents multi-CDS balance drain)
-    mapping(uint256 => uint256) public notionalEscrow;
+    // Per-CDS escrowed notional amounts — stored as encrypted euint256 handles via cUsdc
+    mapping(uint256 => euint256) public notionalEscrow;
 
     // Auditor/regulator access registry
     mapping(uint256 => mapping(address => bool)) public auditorAccess;
@@ -133,9 +137,11 @@ contract ConfidentialCDS is ReentrancyGuard {
 
     // ============ Constructor ============
 
-    constructor(address _priceFeed, address _usdc) {
+    constructor(address _priceFeed, address _cUsdc) {
         priceFeed = AggregatorV3Interface(_priceFeed);
-        usdc = IERC20(_usdc);
+        cUsdc = IERC20ToERC7984Wrapper(_cUsdc);
+        // Derive underlying ERC-20 from the CT wrapper — used for premium payments
+        usdc = IERC20(cUsdc.underlying());
     }
 
     // ============ Core Functions ============
@@ -188,22 +194,42 @@ contract ConfidentialCDS is ReentrancyGuard {
     }
 
     /**
-     * @notice Seller deposits the notional USDC into per-CDS escrow to activate the contract.
-     * The seller must first approve this contract for the notional amount off-chain.
-     * The USDC transfer amount mirrors the encrypted notional handle — the transfer is
-     * visible in calldata (known ERC-20 trade-off); the euint256 handle provides the
-     * encrypted on-chain commitment.
-     * @param cdsId     The CDS contract ID
-     * @param amount    The USDC amount to escrow as notional
+     * @notice Seller deposits the notional into per-CDS escrow using Confidential Tokens.
+     *
+     * The deposit amount is fully encrypted end-to-end — neither the calldata nor the
+     * on-chain state reveals the notional. The seller must complete three steps before
+     * calling this function:
+     *   1. MockUSDC.approve(cUSDCAddress, amount)
+     *   2. cUSDC.wrap(sellerAddress, amount)
+     *   3. cUSDC.setOperator(cdsAddress, type(uint48).max)
+     *
+     * @param cdsId           The CDS contract ID
+     * @param notionalHandle  Browser-encrypted cUSDC amount handle (encrypted for cUsdc address)
+     * @param notionalProof   Nox proof validating the encrypted handle
      */
-    function depositNotional(uint256 cdsId, uint256 amount) external nonReentrant {
+    function depositNotional(
+        uint256 cdsId,
+        externalEuint256 notionalHandle,
+        bytes calldata notionalProof
+    ) external nonReentrant {
         CDSContract storage cds = contracts[cdsId];
         if (msg.sender != cds.seller) revert NotSeller();
         if (cds.status != CDSStatus.Active) revert NotActive();
         if (cds.notionalDeposited) revert AlreadyDeposited();
 
-        usdc.safeTransferFrom(msg.sender, address(this), amount);
-        notionalEscrow[cdsId] = amount;
+        // Pull cUSDC from seller into this contract via confidential transfer.
+        // Seller must have called setOperator(address(this), uint48.max) on cUsdc first.
+        // The handle was encrypted for the cUsdc contract address.
+        euint256 deposited = cUsdc.confidentialTransferFrom(
+            cds.seller,
+            address(this),
+            notionalHandle,
+            notionalProof
+        );
+
+        // Grant persistent ACL so this contract can use the handle in claim/expire
+        Nox.allowThis(deposited);
+        notionalEscrow[cdsId] = deposited;
         cds.notionalDeposited = true;
 
         emit NotionalDeposited(cdsId);
@@ -280,10 +306,11 @@ contract ConfidentialCDS is ReentrancyGuard {
         if (cds.status != CDSStatus.Settled) revert NotSettled();
         if (!cds.notionalDeposited) revert CreditEventNotTriggered();
 
-        // Transfer this CDS's escrowed notional to buyer
-        uint256 escrow = notionalEscrow[cdsId];
-        notionalEscrow[cdsId] = 0;
-        usdc.safeTransfer(cds.buyer, escrow);
+        // Transfer encrypted notional escrow to buyer via Confidential Token.
+        // Buyer receives cUSDC in their confidential balance — fully hidden amount.
+        euint256 escrow = notionalEscrow[cdsId];
+        notionalEscrow[cdsId] = Nox.toEuint256(0);
+        cUsdc.confidentialTransfer(cds.buyer, escrow);
 
         emit PayoutClaimed(cdsId, cds.buyer);
     }
@@ -300,9 +327,10 @@ contract ConfidentialCDS is ReentrancyGuard {
         cds.status = CDSStatus.Expired;
 
         if (cds.notionalDeposited) {
-            uint256 escrow = notionalEscrow[cdsId];
-            notionalEscrow[cdsId] = 0;
-            usdc.safeTransfer(cds.seller, escrow);
+            // Return encrypted notional escrow to seller via Confidential Token.
+            euint256 escrow = notionalEscrow[cdsId];
+            notionalEscrow[cdsId] = Nox.toEuint256(0);
+            cUsdc.confidentialTransfer(cds.seller, escrow);
         }
 
         emit ContractExpired(cdsId);

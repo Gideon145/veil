@@ -13,7 +13,7 @@ const accounts = isValidKey ? [PRIVATE_KEY!.startsWith("0x") ? PRIVATE_KEY! : `0
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.27",
+    version: "0.8.28",
     settings: {
       optimizer: {
         enabled: true,

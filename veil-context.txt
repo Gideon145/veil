@@ -1,0 +1,1 @@
+Veil Protocol is a confidential Credit Default Swap (CDS) platform on Arbitrum. Users create hedge positions with a price floor for ETH/USD. If ETH drops below the floor, the buyer receives USDC payout from escrowed seller collateral. Position sizes are encrypted via iExec Nox TEE — invisible on-chain. Settlement is trustless via Chainlink ETH/USD oracle.

@@ -1,6 +1,9 @@
 export const CDS_ABI = [
   {
-    "inputs": [{"internalType": "address", "name": "_priceFeed", "type": "address"}, {"internalType": "address", "name": "_usdc", "type": "address"}],
+    "inputs": [
+      {"internalType": "address", "name": "_priceFeed", "type": "address"},
+      {"internalType": "address", "name": "_cUsdc", "type": "address"}
+    ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -19,7 +22,11 @@ export const CDS_ABI = [
     "type": "function"
   },
   {
-    "inputs": [{"internalType": "uint256", "name": "cdsId", "type": "uint256"}, {"internalType": "uint256", "name": "amount", "type": "uint256"}],
+    "inputs": [
+      {"internalType": "uint256", "name": "cdsId", "type": "uint256"},
+      {"internalType": "bytes32", "name": "notionalHandle", "type": "bytes32"},
+      {"internalType": "bytes", "name": "notionalProof", "type": "bytes"}
+    ],
     "name": "depositNotional",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -164,6 +171,37 @@ export const USDC_ABI = [
     "inputs": [{"internalType": "address", "name": "owner", "type": "address"}, {"internalType": "address", "name": "spender", "type": "address"}],
     "name": "allowance",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;
+
+export const CUSDC_ABI = [
+  {
+    "inputs": [{"internalType": "address", "name": "to", "type": "address"}, {"internalType": "uint256", "name": "amount", "type": "uint256"}],
+    "name": "wrap",
+    "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "operator", "type": "address"}, {"internalType": "uint48", "name": "until", "type": "uint48"}],
+    "name": "setOperator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "spender", "type": "address"}, {"internalType": "uint256", "name": "amount", "type": "uint256"}],
+    "name": "approve",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "holder", "type": "address"}, {"internalType": "address", "name": "spender", "type": "address"}],
+    "name": "isOperator",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
     "stateMutability": "view",
     "type": "function"
   }

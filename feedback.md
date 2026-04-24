@@ -51,9 +51,9 @@ Before Nox, confidential on-chain finance was impossible — you could either ha
 
 ## Repository
 
-GitHub: [github.com/Gideon145/ccds](https://github.com/Gideon145/ccds) *(to be pushed)*
+GitHub: [github.com/Gideon145/veil](https://github.com/Gideon145/veil)
 
-Deployed on Arbitrum Sepolia — contract addresses in `deployments/arbitrumSepolia.json` after deployment.
+Deployed on Arbitrum Sepolia — contract addresses in `deployments/arbitrumSepolia.json`.
 
 ---
 
