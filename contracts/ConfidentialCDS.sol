@@ -215,12 +215,21 @@ contract ConfidentialCDS is ReentrancyGuard {
 
         // Pull cUSDC from seller into this contract via confidential transfer.
         // Seller must have called setOperator(address(this), uint48.max) on cUsdc first.
-        // The handle was encrypted for the cUsdc contract address.
+        //
+        // NOTE: We call Nox.fromExternal here (directly in CDS, msg.sender = seller)
+        // rather than passing externalEuint256 into cUsdc.confidentialTransferFrom.
+        // The reason: Nox.validateInputProof checks proof.signer == msg.sender.
+        // If we called cUsdc.confidentialTransferFrom(externalHandle), Nox.fromExternal
+        // would run inside cUsdc where msg.sender = CDS (not seller) → "Owner mismatch".
+        // By validating here first, msg.sender = seller = proof signer ✓.
+        euint256 amount = Nox.fromExternal(notionalHandle, notionalProof);
+        Nox.allowThis(amount); // grant CDS permission to use handle in next call
+
+        // Use the euint256 overload — no Nox.fromExternal inside, only isAllowed + isOperator checks
         euint256 deposited = cUsdc.confidentialTransferFrom(
             cds.seller,
             address(this),
-            notionalHandle,
-            notionalProof
+            amount
         );
 
         // Grant persistent ACL so this contract can use the handle in claim/expire

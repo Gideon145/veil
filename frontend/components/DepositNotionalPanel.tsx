@@ -153,8 +153,9 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
         account: address,
       });
       const noxClient = await createViemHandleClient(walletClient);
-      // Encrypt for cUSDC address — cUSDC calls Nox.fromExternal internally
-      const { handle, handleProof } = await noxClient.encryptInput(amountRaw, "uint256", cUsdcAddress);
+      // Encrypt for CDS contract address — depositNotional calls Nox.fromExternal
+      // directly from CDS (msg.sender = seller), so proof.applicationContract must = CDS address.
+      const { handle, handleProof } = await noxClient.encryptInput(amountRaw, "uint256", cdsAddress);
 
       setPhase("depositing");
       const gas = await getGas();
