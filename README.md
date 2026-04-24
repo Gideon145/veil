@@ -108,8 +108,8 @@ All contracts are verified on Arbiscan and live on Arbitrum Sepolia (chainId **4
 
 | Contract | Address | Arbiscan |
 |---|---|---|
-| **ConfidentialCDS** | `0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014` | [View ↗](https://sepolia.arbiscan.io/address/0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014) |
-| **ConfidentialPiggyBank** | `0xCa118a3d8D5798AD904607E7a4b3CC2bbe41F2DE` | [View ↗](https://sepolia.arbiscan.io/address/0xCa118a3d8D5798AD904607E7a4b3CC2bbe41F2DE) |
+| **ConfidentialCDS v2** | `0x239Ef074aC7431f4Ccf591F116358406280Aa724` | [View ↗](https://sepolia.arbiscan.io/address/0x239Ef074aC7431f4Ccf591F116358406280Aa724) |
+| **ConfidentialUSDC** (ERC-7984 cUSDC) | `0xc87494fcBDC8dF54CAE40B018c3749A108772e8e` | [View ↗](https://sepolia.arbiscan.io/address/0xc87494fcBDC8dF54CAE40B018c3749A108772e8e) |
 | **MockUSDC** (testnet) | `0x911E87629756F34190DF34162806f00b35521FD0` | [View ↗](https://sepolia.arbiscan.io/address/0x911E87629756F34190DF34162806f00b35521FD0) |
 | **Chainlink ETH/USD** | `0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165` | [View ↗](https://sepolia.arbiscan.io/address/0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165) |
 | **iExec NoxCompute** | `0xd464B198f06756a1d00be223634b85E0a731c229` | [View ↗](https://sepolia.arbiscan.io/address/0xd464B198f06756a1d00be223634b85E0a731c229) |
@@ -120,7 +120,7 @@ All contracts are verified on Arbiscan and live on Arbitrum Sepolia (chainId **4
 | **Frontend** | https://veil-protocol-tau.vercel.app |
 | **Demo video** | https://youtu.be/ybzn5onO8Ws |
 | **Deployer wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
-| **Deployed at** | `2026-04-11T02:13:22Z` |
+| **Deployed at** | `2026-04-24` (CT v2) |
 
 ---
 
@@ -131,7 +131,7 @@ Confirm the contracts are live and the CDS counter is non-zero:
 ### PowerShell (Windows)
 ```powershell
 # Read total number of CDS contracts created
-$body = '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014","data":"0x6d2d3a0c"},"latest"],"id":1}'
+$body = '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x239Ef074aC7431f4Ccf591F116358406280Aa724","data":"0x6d2d3a0c"},"latest"],"id":1}'
 Invoke-RestMethod -Uri "https://sepolia-rollup.arbitrum.io/rpc" -Method Post -ContentType "application/json" -Body $body
 ```
 
@@ -141,7 +141,7 @@ curl -s -X POST https://sepolia.arbiscan.io/api \
   -G \
   -d "module=contract" \
   -d "action=getsourcecode" \
-  -d "address=0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014" \
+  -d "address=0x239Ef074aC7431f4Ccf591F116358406280Aa724" \
   | python3 -m json.tool
 ```
 
