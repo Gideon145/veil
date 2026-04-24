@@ -223,7 +223,8 @@ contract ConfidentialCDS is ReentrancyGuard {
         // would run inside cUsdc where msg.sender = CDS (not seller) → "Owner mismatch".
         // By validating here first, msg.sender = seller = proof signer ✓.
         euint256 amount = Nox.fromExternal(notionalHandle, notionalProof);
-        Nox.allowThis(amount); // grant CDS permission to use handle in next call
+        Nox.allowThis(amount);           // CDS needs access for subsequent escrow ops
+        Nox.allow(amount, address(cUsdc)); // cUSDC needs access so safeSub in _transfer can use it
 
         // Use the euint256 overload — no Nox.fromExternal inside, only isAllowed + isOperator checks
         euint256 deposited = cUsdc.confidentialTransferFrom(
