@@ -127,7 +127,7 @@ export function DepositNotionalPanel({ cdsId, seller, status }: DepositNotionalP
     setErrorMsg(null);
     try {
       const gas = await getGas();
-      const UINT48_MAX = 281474976710655n;
+      const UINT48_MAX = 281474976710655; // uint48 max — viem infers uint48 as number
       const hash = await writeContractAsync({ address: cUsdcAddress, abi: CUSDC_ABI, functionName: "setOperator", args: [cdsAddress, UINT48_MAX], ...gas });
       await waitForTx(hash);
       markDone("operator");
