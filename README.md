@@ -108,8 +108,8 @@ All contracts are verified on Arbiscan and live on Arbitrum Sepolia (chainId **4
 
 | Contract | Address | Arbiscan |
 |---|---|---|
-| **ConfidentialCDS v3** | `0xfA23aD97777007c10734c9C6b87B6208Fcf4Ec64` | [View ↗](https://sepolia.arbiscan.io/address/0xfA23aD97777007c10734c9C6b87B6208Fcf4Ec64) |
-| **ConfidentialUSDC v2** (ERC-7984 cUSDC) | `0xb925101EFAD0D2918cE1FA0dAba450fDC2c86bb6` | [View ↗](https://sepolia.arbiscan.io/address/0xb925101EFAD0D2918cE1FA0dAba450fDC2c86bb6) |
+| **ConfidentialCDS v4** | `0xB2326A7A1EA88054906b16783B12E451d1Af0791` | [View ↗](https://sepolia.arbiscan.io/address/0xB2326A7A1EA88054906b16783B12E451d1Af0791) |
+| **ConfidentialUSDC v3** (ERC-7984 cUSDC) | `0xA947f7395B98AE41f862e6F0BDef8C852953a4E3` | [View ↗](https://sepolia.arbiscan.io/address/0xA947f7395B98AE41f862e6F0BDef8C852953a4E3) |
 | **MockUSDC** (testnet) | `0x911E87629756F34190DF34162806f00b35521FD0` | [View ↗](https://sepolia.arbiscan.io/address/0x911E87629756F34190DF34162806f00b35521FD0) |
 | **Chainlink ETH/USD** | `0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165` | [View ↗](https://sepolia.arbiscan.io/address/0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165) |
 | **iExec NoxCompute** | `0xd464B198f06756a1d00be223634b85E0a731c229` | [View ↗](https://sepolia.arbiscan.io/address/0xd464B198f06756a1d00be223634b85E0a731c229) |
@@ -120,7 +120,7 @@ All contracts are verified on Arbiscan and live on Arbitrum Sepolia (chainId **4
 | **Frontend** | https://veil-protocol-tau.vercel.app |
 | **Demo video** | https://youtu.be/ybzn5onO8Ws |
 | **Deployer wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
-| **Deployed at** | `2026-04-24` (CT v3) |
+| **Deployed at** | `2026-04-24` (CT v4) |
 
 ---
 
