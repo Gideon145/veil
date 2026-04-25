@@ -118,7 +118,7 @@ All contracts are verified on Arbiscan and live on Arbitrum Sepolia (chainId **4
 |---|---|
 | **GitHub** | https://github.com/Gideon145/veil |
 | **Frontend** | https://veil-protocol-tau.vercel.app |
-| **Demo video** | https://youtu.be/ybzn5onO8Ws |
+| **Demo video** | https://youtu.be/M2DNMKQLZI4 |
 | **Deployer wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
 | **Deployed at** | `2026-04-24` (CT v4) |
 
