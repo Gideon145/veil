@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CreateCDSForm } from "@/components/CreateCDSForm";
+import { MintUSDCButton } from "@/components/MintUSDCButton";
 
 export default function CreatePage() {
   return (
@@ -37,6 +38,7 @@ export default function CreatePage() {
           </div>
         </div>
 
+        <MintUSDCButton />
         <CreateCDSForm />
       </div>
     </div>

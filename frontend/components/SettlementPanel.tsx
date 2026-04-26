@@ -70,31 +70,18 @@ export function SettlementPanel({
     });
   }
 
-  // Demo key: publicly documented Hardhat #0 — safe for testnet only
-  const DEMO_PK = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
-
   async function handleAutoSettle() {
     setAutoSettling(true);
     setAutoSettleError(null);
     try {
-      const { createWalletClient, createPublicClient, http } = await import("viem");
-      const { privateKeyToAccount } = await import("viem/accounts");
-      const { arbitrumSepolia } = await import("viem/chains");
-      const account = privateKeyToAccount(DEMO_PK);
-      const transport = http("https://sepolia-rollup.arbitrum.io/rpc");
-      const publicClient = createPublicClient({ chain: arbitrumSepolia, transport });
-      const walletClient = createWalletClient({ account, chain: arbitrumSepolia, transport });
-      const gasPrice = await publicClient.getGasPrice();
-      const gas = { gasPrice: (gasPrice * BigInt(150)) / BigInt(100) };
-      const hash = await walletClient.writeContract({
-        address: deployments.ConfidentialCDS as `0x${string}`,
-        abi: CDS_ABI,
-        functionName: "checkAndSettle",
-        args: [BigInt(cdsId)],
-        ...gas,
+      const res = await fetch("/api/demo-settle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cdsId }),
       });
-      await publicClient.waitForTransactionReceipt({ hash });
-      setAutoSettleTx(hash);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Settlement failed");
+      setAutoSettleTx(data.hash);
     } catch (err) {
       setAutoSettleError(err instanceof Error ? err.message : String(err));
     } finally {
