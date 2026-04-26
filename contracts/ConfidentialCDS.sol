@@ -130,6 +130,7 @@ contract ConfidentialCDS is ReentrancyGuard {
     error InvalidPrice();
     error InvalidDuration();
     error SameBuyerAndSeller();
+    error Unauthorized();
 
     // ============ Constructor ============
 
@@ -351,7 +352,7 @@ contract ConfidentialCDS is ReentrancyGuard {
      */
     function grantAuditorAccess(uint256 cdsId, address auditor) external {
         CDSContract storage cds = contracts[cdsId];
-        if (msg.sender != cds.buyer && msg.sender != cds.seller) revert NotBuyer();
+        if (msg.sender != cds.buyer && msg.sender != cds.seller) revert Unauthorized();
 
         auditorAccess[cdsId][auditor] = true;
 

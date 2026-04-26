@@ -351,7 +351,7 @@ Standard ERC-20 test token used as the collateral and premium currency for Arbit
 | Layer | Technology | Purpose |
 |---|---|---|
 | **Confidentiality** | [iExec Nox](https://docs.iex.ec) SDK | TEE-based `euint256` encrypted handles for position privacy |
-| **Smart Contracts** | Solidity `0.8.27` | Core CDS logic |
+| **Smart Contracts** | Solidity `0.8.28` | Core CDS logic |
 | **Contract Framework** | Hardhat `2.22` + TypeScript | Compile, test, deploy |
 | **Security** | OpenZeppelin `ReentrancyGuard`, `SafeERC20` | Reentrancy protection, safe token transfers |
 | **Price Oracle** | Chainlink ETH/USD | Trustless settlement trigger — no human arbiter |

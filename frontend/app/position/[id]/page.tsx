@@ -8,6 +8,7 @@ import { PriceFeed } from "@/components/PriceFeed";
 import { SettlementPanel } from "@/components/SettlementPanel";
 import { DepositNotionalPanel } from "@/components/DepositNotionalPanel";
 import { RiskScore } from "@/components/RiskScore";
+import { PayPremiumPanel } from "@/components/PayPremiumPanel";
 import { CDS_ABI } from "@/lib/abis";
 import {
   CDS_STATUS,
@@ -23,6 +24,7 @@ interface CDSData {
   seller: string;
   triggerPrice: bigint;
   maturityTimestamp: bigint;
+  nextPremiumDue: bigint;
   status: number;
   notionalDeposited: boolean;
   notionalHandle: string;
@@ -65,6 +67,7 @@ export default function PositionPage({
           seller: data[1],
           triggerPrice: data[2],
           maturityTimestamp: data[3],
+          nextPremiumDue: data[4],
           status: data[5],
           notionalDeposited: data[6],
           notionalHandle: data[7],
@@ -252,6 +255,15 @@ export default function PositionPage({
                 status={cds.status}
               />
             )}
+
+            {/* Pay premium — only buyer, only active + funded */}
+            <PayPremiumPanel
+              cdsId={cdsId}
+              buyer={cds.buyer}
+              status={cds.status}
+              nextPremiumDue={cds.nextPremiumDue}
+              notionalDeposited={cds.notionalDeposited}
+            />
 
             {/* Settlement panel */}
             <SettlementPanel
