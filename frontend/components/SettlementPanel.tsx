@@ -27,13 +27,16 @@ export function SettlementPanel({
 
   const { writeContract: settle, data: settleTx, isPending: isSettling } = useWriteContract();
   const { writeContract: claim, data: claimTx, isPending: isClaiming } = useWriteContract();
+  const { writeContract: expire, data: expireTx, isPending: isExpiring } = useWriteContract();
 
   useWaitForTransactionReceipt({ hash: settleTx });
   const { isSuccess: claimed, isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: claimTx });
+  const { isSuccess: expireConfirmed } = useWaitForTransactionReceipt({ hash: expireTx });
 
   const isBuyer = address?.toLowerCase() === buyer.toLowerCase();
   const isActive = status === 0;
   const isSettled = status === 1;
+  const isExpiredStatus = status === 2;
   const creditEventTriggered = currentPrice !== null && currentPrice <= triggerPrice;
 
   const [autoSettling, setAutoSettling] = useState(false);
@@ -89,7 +92,7 @@ export function SettlementPanel({
     }
   }
 
-  if (!isActive && !isSettled) return null;
+  if (!isActive && !isSettled && !isExpiredStatus) return null;
 
   return (
     <div className="space-y-4">
@@ -288,6 +291,35 @@ export function SettlementPanel({
               </button>
             </>
           )}
+        </div>
+      )}
+      {isExpiredStatus && (
+        <div className="bg-gray-900 border border-gray-700 rounded-xl p-5 space-y-2">
+          <div className="text-sm font-semibold text-gray-300">⏳ Contract Expired</div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Maturity reached with no credit event. Escrowed collateral has been returned to the seller.
+          </p>
+        </div>
+      )}
+
+      {isActive && (
+        <div className="pt-1 border-t border-gray-800/60">
+          <button
+            onClick={async () => {
+              const gas = await getGasPrice();
+              expire({
+                address: deployments.ConfidentialCDS as `0x${string}`,
+                abi: CDS_ABI,
+                functionName: "expireContract",
+                args: [BigInt(cdsId)],
+                ...gas,
+              });
+            }}
+            disabled={isExpiring || expireConfirmed}
+            className="text-xs text-gray-600 hover:text-gray-400 underline disabled:opacity-40 transition-colors"
+          >
+            {isExpiring ? "Expiring…" : expireConfirmed ? "✓ Expired" : "Expire matured contract"}
+          </button>
         </div>
       )}
     </div>

@@ -768,6 +768,109 @@ The audit confirms the core security patterns — `ReentrancyGuard`, `SafeERC20`
 
 ---
 
+## Nox Integration Deep Dive
+
+VEIL uses iExec Nox at every critical junction of the protocol — not just for a single encryption call, but as the foundation of a two-party financial contract with encrypted escrow.
+
+### The `depositNotional` Design Problem (and How We Solved It)
+
+The most technically demanding part of VEIL was the confidential deposit flow. The seller needs to deposit an encrypted USDC amount into the CDS contract — but Nox's `validateInputProof` checks that `proof.signer == msg.sender`.
+
+The naïve approach would be to pass an `externalEuint256` from the frontend through the CDS contract into `cUsdc.confidentialTransferFrom(externalHandle)`. That fails:
+
+```
+cUsdc.confidentialTransferFrom(externalHandle)
+  └─ Nox.fromExternal(handle, proof)
+       └─ validateInputProof: proof.signer == msg.sender?
+          msg.sender = CDS contract  ← NOT the seller → REVERTS: "Owner mismatch"
+```
+
+**Our solution:** Call `Nox.fromExternal` directly inside `ConfidentialCDS` while `msg.sender` is still the seller, then pass the validated `euint256` handle into `cUsdc.confidentialTransferFrom`:
+
+```solidity
+// In depositNotional() — msg.sender = seller ✓
+euint256 amount = Nox.fromExternal(notionalHandle, notionalProof); // validated here
+Nox.allowThis(amount);               // CDS needs access for escrow ops
+Nox.allow(amount, address(cUsdc));   // cUSDC needs access for its internal transfer
+
+// euint256 overload — no second Nox.fromExternal inside, only isAllowed check
+euint256 deposited = cUsdc.confidentialTransferFrom(cds.seller, address(this), amount);
+Nox.allowThis(deposited);
+notionalEscrow[cdsId] = deposited;
+```
+
+This is not documented anywhere in the Nox SDK docs — it required reading the source of `nox-confidential-contracts` to understand the ACL flow.
+
+### Full Nox Surface Used
+
+| Nox Primitive | Where Used | What It Does |
+|---|---|---|
+| `Nox.fromExternal(handle, proof)` | `createCDS`, `depositNotional`, `payPremium` | Converts browser-encrypted handle into on-chain `euint256`, validating the TEE proof |
+| `Nox.allowThis(euint256)` | Every function that stores a handle | Grants the CDS contract itself ACL access to use the handle |
+| `Nox.allow(euint256, address)` | `createCDS`, `payPremium`, `grantAuditorAccess` | Grants buyer, seller, cUSDC contract, and optional auditors ACL access |
+| `Nox.safeAdd(a, b)` | `payPremium` | Adds encrypted premium to running `premiumBalance` handle — arithmetic on ciphertext |
+| `Nox.toEuint256(0)` | Constructor, `claimPayout`, `expireContract` | Initializes and zeroes encrypted handles after payout |
+| `euint256 overload of confidentialTransferFrom` | `depositNotional` | Transfers encrypted USDC using an already-validated handle — bypasses second proof check |
+| `@iexec-nox/handle` — `createViemHandleClient` + `encryptInput` | `CreateCDSForm.tsx`, `DepositNotionalPanel.tsx`, `PayPremiumPanel.tsx` | Client-side encryption in the browser before any transaction is broadcast |
+
+### ACL Model for a CDS Position
+
+```
+euint256 notional (created in createCDS):
+  ├─ ACL: CDS contract     ← Nox.allowThis()
+  ├─ ACL: buyer            ← Nox.allow(notional, buyer)
+  ├─ ACL: seller           ← Nox.allow(notional, seller)
+  └─ ACL: auditor (opt.)   ← Nox.allow(notional, auditor)  via grantAuditorAccess()
+
+euint256 premiumBalance (updated in payPremium):
+  ├─ ACL: CDS contract
+  ├─ ACL: buyer
+  └─ ACL: seller
+
+euint256 deposited (in notionalEscrow after depositNotional):
+  ├─ ACL: CDS contract
+  └─ transferred to buyer / seller on claimPayout / expireContract
+```
+
+Nobody outside this ACL — not validators, not block explorers, not the counterparty's counterparty — can read the notional.
+
+---
+
+## Integrating VEIL
+
+Any smart contract can check whether a VEIL hedge is active and funded in two lines:
+
+```solidity
+interface IConfidentialCDS {
+    function getCDS(uint256 cdsId) external view returns (
+        address buyer,
+        address seller,
+        uint256 triggerPrice,
+        uint256 maturityTimestamp,
+        uint256 nextPremiumDue,
+        uint8   status,
+        bool    notionalDeposited,
+        bytes32 notionalHandle,
+        bytes32 premiumBalanceHandle
+    );
+}
+
+contract MyProtocol {
+    // VEIL ConfidentialCDS on Arbitrum Sepolia
+    IConfidentialCDS veil = IConfidentialCDS(0xB2326A7A1EA88054906b16783B12E451d1Af0791);
+
+    function onlyHedgedCallers(uint256 cdsId) external view {
+        (, , , , , uint8 status, bool funded, , ) = veil.getCDS(cdsId);
+        require(status == 0 && funded, "No active VEIL hedge");
+        // caller has a private, funded hedge — proceed
+    }
+}
+```
+
+The notional amount stays encrypted. Your protocol never sees the size — only that protection exists.
+
+---
+
 ## What Makes VEIL Different
 
 | Feature | Traditional DeFi Hedges | VEIL |
