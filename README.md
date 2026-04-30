@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  VEIL is the first on-chain Credit Default Swap where your position size is <strong>fully encrypted</strong>.<br/>
+  VEIL is an on-chain Credit Default Swap where your position size is <strong>fully encrypted</strong>.<br/>
   Set a price floor for ETH. If the market crashes below it, you get paid automatically —<br/>
   and nobody on the blockchain — not validators, not block explorers, not the counterparty — ever sees how much you hedged.
 </p>
@@ -131,7 +131,7 @@ Confirm the contracts are live and the CDS counter is non-zero:
 ### PowerShell (Windows)
 ```powershell
 # Read total number of CDS contracts created
-$body = '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x239Ef074aC7431f4Ccf591F116358406280Aa724","data":"0x6d2d3a0c"},"latest"],"id":1}'
+$body = '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0xB2326A7A1EA88054906b16783B12E451d1Af0791","data":"0xa09037a9"},"latest"],"id":1}'
 Invoke-RestMethod -Uri "https://sepolia-rollup.arbitrum.io/rpc" -Method Post -ContentType "application/json" -Body $body
 ```
 
@@ -141,7 +141,7 @@ curl -s -X POST https://sepolia.arbiscan.io/api \
   -G \
   -d "module=contract" \
   -d "action=getsourcecode" \
-  -d "address=0x239Ef074aC7431f4Ccf591F116358406280Aa724" \
+  -d "address=0xB2326A7A1EA88054906b16783B12E451d1Af0791" \
   | python3 -m json.tool
 ```
 
@@ -880,7 +880,7 @@ The notional amount stays encrypted. Your protocol never sees the size — only 
 | Selective disclosure | ❌ Not possible | ✅ Grant any address ACL access (regulators, auditors) |
 | Privacy model | None | TEE-based `euint256` handles via iExec Nox |
 | Premium accounting | Plaintext on-chain | Encrypted running total (`premiumBalance`) |
-| CDS structure on-chain | Not available in DeFi | ✅ First confidential CDS implementation |
+| CDS structure on-chain | Not available in DeFi | ✅ Confidential CDS with encrypted notional |
 | Front-running exposure | High — notional is visible pre-execution | Zero — position is encrypted before broadcast |
 | Risk analysis | None / external tools | ✅ Live ChainGPT AI per-position risk scoring |
 
