@@ -17,6 +17,11 @@
 </p>
 
 <p align="center">
+  <a href="https://veil-protocol-tau.vercel.app"><strong>🌐 Live Frontend</strong></a> &nbsp;·&nbsp;
+  <a href="https://youtu.be/M2DNMKQLZI4"><strong>▶ Demo Video</strong></a>
+</p>
+
+<p align="center">
   VEIL is an on-chain Credit Default Swap where your position size is <strong>fully encrypted</strong>.<br/>
   Set a price floor for ETH. If the market crashes below it, you get paid automatically —<br/>
   and nobody on the blockchain — not validators, not block explorers, not the counterparty — ever sees how much you hedged.
