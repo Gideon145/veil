@@ -1,12 +1,14 @@
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /app/agent
 
-# Copy entire agent folder (package.json, tsconfig.json, src/)
-COPY agent/ ./agent/
+COPY agent/ .
 
-# Install ALL deps (including typescript devDep), compile, then prune
-RUN cd agent && npm install && ./node_modules/.bin/tsc && npm prune --omit=dev
+RUN npm install
+
+EXPOSE 3001
+
+CMD ["node", "-r", "ts-node/register/transpile-only", "src/index.ts"]
 
 EXPOSE 3001
 
