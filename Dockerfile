@@ -2,10 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app/agent
 
-COPY agent/ .
+COPY agent/package.json agent/package-lock.json ./
+RUN npm install --omit=dev
 
-RUN npm install
+COPY agent/dist/ ./dist/
 
 EXPOSE 3001
 
-CMD ["node", "-r", "ts-node/register/transpile-only", "src/index.ts"]
+CMD ["node", "dist/index.js"]
