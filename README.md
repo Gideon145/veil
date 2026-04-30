@@ -118,9 +118,35 @@ All contracts are verified on Arbiscan and live on Arbitrum Sepolia (chainId **4
 |---|---|
 | **GitHub** | https://github.com/Gideon145/veil |
 | **Frontend** | https://veil-protocol-tau.vercel.app |
+| **Autonomous Agent** | https://veil-agent.fly.dev/status |
 | **Demo video** | https://youtu.be/M2DNMKQLZI4 |
 | **Deployer wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
 | **Deployed at** | `2026-04-24` (CT v4) |
+
+---
+
+## Autonomous Agent
+
+VEIL runs a 24/7 autonomous settlement agent deployed on **Fly.io** (Chicago, `ord` region).
+
+**Live status:** https://veil-agent.fly.dev/status
+
+The agent:
+- Polls every **30 seconds**
+- Reads **live Chainlink ETH/USD** oracle price
+- Calls `checkAndSettle(id)` on every active CDS — if ETH/USD ≤ triggerPrice, the credit event fires on-chain automatically
+- Calls `expireContract(id)` on any matured positions to return collateral to sellers
+- No human intervention required — the protocol is fully autonomous
+
+```json
+{
+  "ok": true,
+  "lastPriceUSD": "2256.84",
+  "totalCDS": 8,
+  "wallet": "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
+  "cdsAddress": "0xB2326A7A1EA88054906b16783B12E451d1Af0791"
+}
+```
 
 ---
 
