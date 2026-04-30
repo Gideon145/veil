@@ -613,9 +613,9 @@ npx hardhat run scripts/seed.ts --network arbitrumSepolia
 
 ```bash
 npx hardhat verify --network arbitrumSepolia \
-  0x2B9366b7fea6a1C6279edbC7B87CCB91CdCc1014 \
+  0xB2326A7A1EA88054906b16783B12E451d1Af0791 \
   "0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165" \
-  "0x911E87629756F34190DF34162806f00b35521FD0"
+  "0xA947f7395B98AE41f862e6F0BDef8C852953a4E3"
 ```
 
 ---
