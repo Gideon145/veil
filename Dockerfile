@@ -9,7 +9,3 @@ RUN npm install
 EXPOSE 3001
 
 CMD ["node", "-r", "ts-node/register/transpile-only", "src/index.ts"]
-
-EXPOSE 3001
-
-CMD ["node", "agent/dist/index.js"]
