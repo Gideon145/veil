@@ -1,0 +1,107 @@
+# flyctl launch added from .gitignore
+# Vercel project config — never commit, Vercel reads from dashboard
+**\.vercel
+
+# Environment — contains private keys, NEVER commit
+**\.env
+**\.env.*
+!**\.env.example
+
+# Dependencies
+**\node_modules
+**\frontend\node_modules
+
+# Hardhat build outputs
+**\artifacts
+**\cache
+**\typechain-types
+
+# Hardhat deployments with private wallet state
+**\deployments\*
+
+# Frontend build
+**\frontend\.next
+
+# OS
+**\.DS_Store
+**\Thumbs.db
+
+# Parry Protocol — separate git repo, tracked independently
+**\parry
+
+# Other projects — separate repos, live in workspace root but not part of Veil
+**\cope-finance
+**\forge-protocol
+**\rainmaker-protocol
+**\veil
+
+# Workspace planning / scratch files — but NOT agent source files
+# **\*.json  <-- removed: was blocking agent/package.json and agent/package-lock.json
+!**\package.json
+!**\package-lock.json
+!**\hardhat.config.json
+**\agentspend.json
+**\agora.json
+**\autovend.json
+**\buildr.json
+**\devfolio_response.json
+**\dispatch.json
+**\flowpay.json
+**\letalicelead.json
+**\page1.json
+**\page1_complete.json
+**\paygenticarena.json
+**\rainmaker.json
+**\whisper.json
+**\all_projects.txt
+**\veil-context.txt
+**\veil-logo.svg
+**\watermark.svg
+**\thumbnail.svg
+
+# flyctl launch added from frontend\.gitignore
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+frontend\node_modules
+frontend\.pnp
+frontend\**\.pnp.*
+frontend\**\.yarn\*
+!frontend\**\.yarn\patches
+!frontend\**\.yarn\plugins
+!frontend\**\.yarn\releases
+!frontend\**\.yarn\versions
+
+# testing
+frontend\coverage
+
+# next.js
+frontend\.next
+frontend\out
+
+# production
+frontend\build
+
+# misc
+frontend\**\.DS_Store
+frontend\**\*.pem
+
+# debug
+frontend\**\npm-debug.log*
+frontend\**\yarn-debug.log*
+frontend\**\yarn-error.log*
+frontend\**\.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+frontend\**\.env*
+
+# vercel
+frontend\**\.vercel
+
+# typescript
+frontend\**\*.tsbuildinfo
+frontend\**\next-env.d.ts
+
+frontend\**\.vercel
+frontend\**\.env*.local
+fly.toml
