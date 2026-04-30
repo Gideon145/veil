@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  VEIL is the first on-chain Credit Default Swap where your position size is <strong>fully encrypted</strong>.<br/>
+  VEIL is an on-chain Credit Default Swap where your position size is <strong>fully encrypted</strong>.<br/>
   Set a price floor for ETH. If the market crashes below it, you get paid automatically —<br/>
   and nobody on the blockchain — not validators, not block explorers, not the counterparty — ever sees how much you hedged.
 </p>
@@ -42,6 +42,7 @@
 - [Hackathon Checklist](#hackathon-submission-checklist)
 - [What Makes VEIL Different](#what-makes-veil-different)
 - [Built For](#built-for)
+- [Build Timeline](#build-timeline)
 
 ---
 
@@ -917,6 +918,35 @@ The notional amount stays encrypted. Your protocol never sees the size — only 
 **iExec Vibe Coding Challenge 2026** — [DoraHacks Submission ↗](https://dorahacks.io/hackathon/vibe-coding-iexec/buidl)
 
 VEIL was built to demonstrate a real-world financial primitive — the Credit Default Swap — made private and trustless using iExec's Nox confidential compute stack. The use case is immediate and real: institutional participants who want DeFi settlement guarantees without public position exposure.
+
+---
+
+## Build Timeline
+
+VEIL was built in a sustained 20-day sprint across April 10–30, 2026 — entirely for this hackathon. Every component was designed, written, tested, and deployed from scratch. The git history (71 commits) reflects deliberate, deepening technical work — not a vibe-coded scaffold.
+
+**Apr 10, 2026 — Initial build (23:12 UTC)**
+First commit: VEIL Protocol foundations. `ConfidentialCDS.sol` with iExec Nox `euint256` encrypted notionals, ACL via `Nox.allow()`, Chainlink oracle integration, Next.js 15 frontend scaffold, and wallet-gated UI. Core architecture was fully functional on day one.
+
+**Apr 11, 2026 — UX polish + submission**
+UI rebrand (blue theme, card hover effects, hedge-opened/position-closed summary panels, GitHub nav link, built-by strip). `feedback.md` written and committed. X post filed tagging `@iEx_ec` and `@Chain_GPT`.
+
+**Apr 14, 2026 — Audit + hardening**
+Comprehensive README rewrite with full architecture docs and privacy model. ChainGPT AI security audit run — no critical vulnerabilities. Four audit-driven code fixes applied: per-CDS escrow model, `SameBuyerAndSeller` guard, explicit privacy model table, removed all demo-mode shortcuts from production paths.
+
+**Apr 20, 2026 — Live AI risk analysis (25+ commits in one session)**
+Integrated ChainGPT API as a Next.js API route — every open hedge position now gets a live AI risk assessment on load. One-click judge demo features added (auto mint/approve/deposit via testnet key). Resolved Arbitrum Sepolia EIP-1559 gas incompatibility (MetaMask gas param format). 25+ iterative commits across this single session.
+
+**Apr 24, 2026 — ERC-7984 Confidential Token integration**
+Major protocol upgrade: `ConfidentialUSDC` (ERC-7984) deployed as a confidential wrapper around MockUSDC. Notional escrow now moves through `confidentialTransferFrom` — premium payments accumulate as encrypted balances using `Nox.safeAdd()` / `Nox.safeSub()`. Contracts redeployed through v2 → v3 → v4 as ACL grant ordering was refined. Hardhat integration tests added.
+
+**Apr 26–28, 2026 — Security hardening + expiry flow**
+`DEMO_PK` moved fully server-side (eliminated client-side key exposure). `payPremium` UI panel built. `expireContract` frontend flow completed. README Nox deep-dive section added with full integration code snippet.
+
+**Apr 29–30, 2026 — Autonomous settlement agent**
+`agent/src/index.ts` built from scratch: 30-second polling loop, Chainlink price reads, permissionless `checkAndSettle()` + `expireContract()` calls across all active CDS IDs, HTTP `/status` endpoint. Deployed to Fly.io (`veil-agent.fly.dev`) — live and running. 8 CDS positions seeded on Arbitrum Sepolia. JUDGE_GUIDE updated with all live endpoints.
+
+**71 commits. 20 days. One protocol.** The full history is public at [github.com/Gideon145/veil](https://github.com/Gideon145/veil).
 
 ---
 
