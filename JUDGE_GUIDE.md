@@ -1,6 +1,7 @@
 # VEIL Protocol — Judge Guide
 
 **Live Frontend:** https://veil-protocol-tau.vercel.app  
+**Autonomous Agent:** https://veil-agent.fly.dev/status  
 **Network:** Arbitrum Sepolia (chainId 421614)  
 **GitHub:** https://github.com/Gideon145/veil
 
@@ -76,11 +77,22 @@ On the position page, in the **Deposit Notional** section:
 
 ## Autonomous Agent
 
-VEIL runs an autonomous settlement agent on Railway that:
+VEIL runs an autonomous settlement agent on **Fly.io** that:
 - Polls every 30 seconds
 - Calls `checkAndSettle(id)` on every active CDS — if ETH/USD drops below trigger, the contract fires
 - Calls `expireContract(id)` on matured positions
 - Exposes `/status` for health checks
+
+**Live status:** https://veil-agent.fly.dev/status
+
+```json
+{
+  "ok": true,
+  "lastPriceUSD": "2256.84",
+  "totalCDS": 8,
+  "wallet": "0x94A4365E6B7E79791258A3Fa071824BC2b75a394"
+}
+```
 
 This means no human needs to manually trigger settlement — the protocol is truly autonomous.
 
