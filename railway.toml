@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd agent && npm install && npm run build"
+buildCommand = "cd agent && npm install"
 
 [deploy]
 startCommand = "node agent/dist/index.js"
